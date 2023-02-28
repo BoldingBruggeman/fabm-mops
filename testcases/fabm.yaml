@@ -1,0 +1,100 @@
+check_conservation: true
+instances:
+  insolation:
+    model: mops/insolation
+  radiation:
+    model: mops/radiation
+    parameters:
+      parfrac: 0.4
+      ACkw: 0.04
+    coupling:
+      sfac: insolation/sfac
+  oxy:
+    model: mops/oxygen
+    initialization:
+      c: 220
+  carbon:
+    model: mops/carbon
+    parameters:
+      ocmip_alkfac: 67.8496
+    initialization:
+      c: 2100
+    coupling:
+      pho: pho/c
+      sil: sil/data
+  plankton:
+    model: mops/plankton
+    parameters:
+      TempB: 15.65
+      ACmuphy: 0.6
+      ACik: 9.653
+      ACkpo4: 0.4995
+      ACkchl: 0.48
+      AClambda: 0.03
+      AComni: 0.0
+      plambda: 0.01
+      tf2: -0.0042
+      tf1: 0.2253
+      tf0: -2.7819
+      tff: 0.2395
+      nfix: 0.002272073044
+      ACmuzoo: 1.893
+      ACkphy: 0.08599
+      AClambdaz: 0.03
+      AComniz: 4.548
+      ACeff: 0.75
+      graztodop: 0.0
+      zlambda: 0.01
+    initialization:
+      phy: 0.001
+      zoo: 0.001
+    coupling:
+      ciz: radiation/ciz
+      tau: insolation/stau
+      po4: pho/c
+      din: din/c
+      dop: dop/c
+      det: det/c
+      oxy: oxy/c
+  remineralization:
+    model: mops/remineralization
+    parameters:
+      dlambda: 0.0005133333049196715389730860613828195004870736
+      #alimit: 1e-3
+      detlambda: 0.05
+      subox: 1.0
+      subdin: 16.0
+      ACkbaco2: 1.145532
+      ACkbacdin: 23.083559
+    coupling:
+      dop: dop/c
+      det: det/c
+      oxy: oxy/c
+      din: din/c
+      po4: pho/c
+  det:
+    model: mops/detritus
+    parameters:
+      detlambda: 0.05
+      detwb: 0.0
+      detmartin: 0.8580
+      burdige_fac: 1.6828
+      burdige_exp: 0.799
+    initialization:
+      c: 0
+  dop:
+    model: mops/tracer
+    initialization:
+      c: 0
+  din:
+    model: bb/passive
+    initialization:
+      c: 10
+  pho:
+    model: mops/tracer
+    initialization:
+      c: 1
+  sil:
+    model: interior_constant
+    parameters:
+      value: 7.7
