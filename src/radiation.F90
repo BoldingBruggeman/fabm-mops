@@ -14,7 +14,7 @@ module mops_radiation
       type (type_diagnostic_variable_id)   :: id_ciz, id_atten
 
       ! Parameters
-      real(rk) :: parfrac, ACkw
+      real(rk) :: parfrac
    contains
       ! Model procedures
       procedure :: initialize
@@ -27,10 +27,12 @@ contains
       class (type_mops_radiation), intent(inout), target :: self
       integer,                     intent(in)            :: configunit
 
-      call self%get_parameter(self%parfrac, 'parfrac', '1', 'PAR fraction of shortwave radiation', default=0.4_rk) 
-      call self%get_parameter(self%ACkw, 'ACkw', '1/m','attenuation of water', default=0.04_rk) 
+      real(rk) :: ACkw
 
-      call self%add_to_aggregate_variable(standard_variables%attenuation_coefficient_of_photosynthetic_radiative_flux, self%ACkw)
+      call self%get_parameter(self%parfrac, 'parfrac', '1', 'PAR fraction of shortwave radiation', default=0.4_rk) 
+      call self%get_parameter(ACkw, 'ACkw', '1/m','attenuation of water', default=0.04_rk) 
+
+      call self%add_to_aggregate_variable(standard_variables%attenuation_coefficient_of_photosynthetic_radiative_flux, ACkw)
 
       ! Register diagnostic variables
       call self%register_diagnostic_variable(self%id_ciz, 'ciz', 'W m-2', 'PAR at top of the layer', source=source_do_column)
@@ -55,7 +57,7 @@ end subroutine
       _DOWNWARD_LOOP_BEGIN_
          _SET_DIAGNOSTIC_(self%id_ciz,ciz)
          _GET_(self%id_bgc_dz,bgc_dz)     ! Layer height (m)
-         _GET_(self%id_att,att)           ! Attenuation (1/m)
+         _GET_(self%id_att,att)           ! Attenuation by water and phytoplankton combined (1/m)
          atten = att*bgc_dz
          ciz = ciz * exp(-atten)
          _SET_DIAGNOSTIC_(self%id_atten,atten)

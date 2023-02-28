@@ -11,7 +11,7 @@ module mops_remineralization
 
    type, extends(type_base_model), public :: type_mops_remineralization
       type (type_dependency_id) :: id_bgc_theta
-      type (type_state_variable_id) :: id_dop, id_det, id_oxy, id_din, id_po4
+      type (type_state_variable_id) :: id_dop, id_det, id_oxy, id_din, id_po4, id_dic
       type (type_diagnostic_variable_id) :: id_f4, id_f5, id_f7
 
       real(rk) :: dlambda, detlambda, subox, subdin, ACkbaco2, ACkbacdin
@@ -39,6 +39,7 @@ contains
       call self%register_state_dependency(self%id_oxy, 'oxy', 'mmol O2/m3', 'oxygen')
       call self%register_state_dependency(self%id_din, 'din', 'mmol N/m3', 'dissolved inorganic nitrogen')
       call self%register_state_dependency(self%id_po4, 'po4', 'mmol P/m3', 'phosphate')
+      call self%register_state_dependency(self%id_dic, 'dic', 'mmol C/m3', 'dissolved inorganic carbon')
 
       ! Register environmental dependencies
       call self%register_dependency(self%id_bgc_theta, standard_variables%temperature)
@@ -57,6 +58,7 @@ contains
       real(rk) :: DOP, DET, OXY, DIN
       real(rk) :: oxymm, o2req, o2usefrac, remindop, remindet
       real(rk) :: dinmm, dinreq, dinusefrac, denitdop, denitdet
+      real(rk) :: topo4
 
       _LOOP_BEGIN_
 
@@ -126,11 +128,13 @@ contains
 
       endif
 
-      _ADD_SOURCE_(self%id_po4, remindop+remindet+denitdop+denitdet)
+      topo4 = remindop+remindet+denitdop+denitdet
+      _ADD_SOURCE_(self%id_po4, topo4)
       _ADD_SOURCE_(self%id_dop, -remindop-denitdop)
       _ADD_SOURCE_(self%id_oxy, -(remindop+remindet)*ro2ut)
       _ADD_SOURCE_(self%id_det, -remindet-denitdet)
       _ADD_SOURCE_(self%id_din, +(remindop+remindet)*rnp-(denitdop+denitdet)*rhno3ut)
+      _ADD_SOURCE_(self%id_dic, topo4*rcp)
       _SET_DIAGNOSTIC_(self%id_f4, remindop+remindet)
       _SET_DIAGNOSTIC_(self%id_f7, denitdop+denitdet)
 

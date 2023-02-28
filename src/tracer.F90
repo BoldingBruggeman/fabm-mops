@@ -21,7 +21,7 @@ contains
       class (type_mops_tracer), intent(inout), target :: self
       integer,                  intent(in)            :: configunit
 
-      call self%register_state_variable(self%id_c, 'c', 'mmol/m3', 'concentration')
+      call self%register_state_variable(self%id_c, 'c', 'mmol P/m3', 'concentration')
       call self%add_to_aggregate_variable(standard_variables%total_phosphorus, self%id_c)
    end subroutine
 

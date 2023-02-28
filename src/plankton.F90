@@ -12,10 +12,10 @@ module mops_plankton
    type, extends(type_base_model), public :: type_mops_plankton
       type (type_dependency_id) :: id_bgc_theta, id_bgc_dz, id_ciz, id_att
       type (type_surface_dependency_id) :: id_bgc_tau
-      type (type_state_variable_id) :: id_phy, id_zoo, id_po4, id_din, id_oxy, id_det, id_dop
+      type (type_state_variable_id) :: id_phy, id_zoo, id_po4, id_din, id_oxy, id_det, id_dop, id_dic
       type (type_diagnostic_variable_id) :: id_f1, id_f2, id_f6
 
-      real(rk) :: TempB, ACmuphy, ACik, ACkpo4, ACkchl, AClambda, AComni, plambda
+      real(rk) :: TempB, ACmuphy, ACik, ACkpo4, AClambda, AComni, plambda
       real(rk) :: ACmuzoo, ACkphy, AClambdaz, AComniz, ACeff, graztodop, zlambda
       real(rk) :: tf0, tf1, tf2, tff, nfix
    contains
@@ -30,11 +30,13 @@ contains
       class (type_mops_plankton), intent(inout), target :: self
       integer,                    intent(in)            :: configunit
 
+      real(rk) :: ACkchl
+
       call self%get_parameter(self%TempB, 'TempB', 'degrees Celsius','ref. temperature for T-dependent growth', default=15.65_rk) 
       call self%get_parameter(self%ACmuphy, 'ACmuphy', '1/day','max. growth rate', default=0.6_rk) 
       call self%get_parameter(self%ACik, 'ACik', 'W/m2','light half-saturation constant', default=9.653_rk) 
       call self%get_parameter(self%ACkpo4, 'ACkpo4', 'mmol P/m3','half-saturation constant for PO4 uptake', default=0.4995_rk) 
-      call self%get_parameter(self%ACkchl, 'ACkchl', '1/(m*mmol P/m3)','att. of Phy', default=0.03_rk*rnp) 
+      call self%get_parameter(ACkchl, 'ACkchl', '1/(m*mmol P/m3)','att. of Phy', default=0.03_rk*rnp) 
       call self%get_parameter(self%AClambda, 'AClambda', '1/day','exudation rate', default=0.03_rk) 
       call self%get_parameter(self%AComni, 'AComni', 'm3/(mmol P * day)','density dep. loss rate', default=0.0_rk) 
       call self%get_parameter(self%plambda, 'plambda', '1/d','phytoplankton mortality', default=0.01_rk) 
@@ -50,13 +52,13 @@ contains
 ! function 2 for T-dependent nitrogen fixation multiplied by 4 
 ! (2 [N atoms per mole] * 12 [light hrs per day]/6 [C-atoms per N-atoms])
       call self%get_parameter(self%tf2, 'tf2', '1/(d degC^2)','nitrogen fixation poly 2', default=-0.0042_rk) 
-      call self%get_parameter(self%tf1, 'tf1', '1/(d degC)','nitrogen fixation poly 1', default=-0.2253_rk) 
+      call self%get_parameter(self%tf1, 'tf1', '1/(d degC)','nitrogen fixation poly 1', default=0.2253_rk) 
       call self%get_parameter(self%tf0, 'tf0', '1/d','nitrogen fixation poly 0', default=-2.7819_rk) 
       call self%get_parameter(self%tff, 'tff', '1/d','nitrogen fixation normalization', default=0.2395_rk) 
       call self%get_parameter(self%nfix, 'nfix', 'mmol N/m3/d','max. nitrogen fixation', default=0.002272073044_rk) 
 
       call self%get_parameter(self%ACmuzoo, 'ACmuzoo', '1/d','max. grazing rate', default=1.893_rk)
-      call self%get_parameter(self%ACkphy, 'ACkphy', 'mmol P','zoo half-saturation constant', default=SQRT(self%ACmuzoo/1.0_rk)/rnp)
+      call self%get_parameter(self%ACkphy, 'ACkphy', 'mmol P/m3','zoo half-saturation constant', default=SQRT(self%ACmuzoo/1.0_rk)/rnp)
       call self%get_parameter(self%AClambdaz, 'AClambdaz', '1/d','zooplankton excretion', default=0.03_rk)
       call self%get_parameter(self%AComniz, 'AComniz', 'm3/(mmol P * day)','zooplankton mortality', default=4.548_rk)
       call self%get_parameter(self%ACeff, 'ACeff', '1','assimilation efficiency', default=0.75_rk)
@@ -75,6 +77,7 @@ contains
       call self%register_state_dependency(self%id_oxy, 'oxy', 'mmol O2/m3', 'oxygen')
       call self%register_state_dependency(self%id_din, 'din', 'mmol N/m3', 'dissolved inorganic nitrogen')
       call self%register_state_dependency(self%id_po4, 'po4', 'mmol P/m3', 'phosphate')
+      call self%register_state_dependency(self%id_dic, 'dic', 'mmol C/m3', 'dissolved inorganic carbon')
 
       ! Register environmental dependencies
       call self%register_dependency(self%id_ciz, 'ciz', 'W m-2', 'PAR at top of the layer')
@@ -83,7 +86,7 @@ contains
       call self%register_dependency(self%id_bgc_dz, standard_variables%cell_thickness)
       call self%register_dependency(self%id_att, standard_variables%attenuation_coefficient_of_photosynthetic_radiative_flux)
 
-      call self%add_to_aggregate_variable(standard_variables%attenuation_coefficient_of_photosynthetic_radiative_flux, self%id_phy, scale_factor=self%ACkchl)
+      call self%add_to_aggregate_variable(standard_variables%attenuation_coefficient_of_photosynthetic_radiative_flux, self%id_phy, scale_factor=ACkchl)
       call self%add_to_aggregate_variable(standard_variables%total_phosphorus, self%id_phy)
       call self%add_to_aggregate_variable(standard_variables%total_phosphorus, self%id_zoo)
 
@@ -223,6 +226,7 @@ contains
         _ADD_SOURCE_(self%id_zoo, self%ACeff*graz-zooexu-zooloss)
         _ADD_SOURCE_(self%id_det, (1.0_rk-self%graztodop)*(1.0_rk-self%ACeff)*graz + (1.0_rk-self%graztodop)*(phyexu+zooloss))
         _ADD_SOURCE_(self%id_din, topo4*rnp + nfixation)
+        _ADD_SOURCE_(self%id_dic, topo4*rcp)
 
          PHY = MAX(PHY - alimit*alimit, 0.0_rk)
          ZOO = MAX(ZOO - alimit*alimit, 0.0_rk)

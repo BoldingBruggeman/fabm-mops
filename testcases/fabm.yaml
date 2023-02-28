@@ -1,100 +1,108 @@
-check_conservation: true
 instances:
-  insolation:
-    model: mops/insolation
-  radiation:
-    model: mops/radiation
-    parameters:
-      parfrac: 0.4
-      ACkw: 0.04
-    coupling:
-      sfac: insolation/sfac
-  oxy:
-    model: mops/oxygen
-    initialization:
-      c: 220
-  carbon:
-    model: mops/carbon
-    parameters:
-      ocmip_alkfac: 67.8496
-    initialization:
-      c: 2100
-    coupling:
-      pho: pho/c
-      sil: sil/data
-  plankton:
-    model: mops/plankton
-    parameters:
-      TempB: 15.65
-      ACmuphy: 0.6
-      ACik: 9.653
-      ACkpo4: 0.4995
-      ACkchl: 0.48
-      AClambda: 0.03
-      AComni: 0.0
-      plambda: 0.01
-      tf2: -0.0042
-      tf1: 0.2253
-      tf0: -2.7819
-      tff: 0.2395
-      nfix: 0.002272073044
-      ACmuzoo: 1.893
-      ACkphy: 0.08599
-      AClambdaz: 0.03
-      AComniz: 4.548
-      ACeff: 0.75
-      graztodop: 0.0
-      zlambda: 0.01
-    initialization:
-      phy: 0.001
-      zoo: 0.001
-    coupling:
-      ciz: radiation/ciz
-      tau: insolation/stau
-      po4: pho/c
-      din: din/c
-      dop: dop/c
-      det: det/c
-      oxy: oxy/c
-  remineralization:
-    model: mops/remineralization
-    parameters:
-      dlambda: 0.0005133333049196715389730860613828195004870736
-      #alimit: 1e-3
-      detlambda: 0.05
-      subox: 1.0
-      subdin: 16.0
-      ACkbaco2: 1.145532
-      ACkbacdin: 23.083559
-    coupling:
-      dop: dop/c
-      det: det/c
-      oxy: oxy/c
-      din: din/c
-      po4: pho/c
-  det:
-    model: mops/detritus
-    parameters:
-      detlambda: 0.05
-      detwb: 0.0
-      detmartin: 0.8580
-      burdige_fac: 1.6828
-      burdige_exp: 0.799
-    initialization:
-      c: 0
-  dop:
-    model: mops/tracer
-    initialization:
-      c: 0
-  din:
-    model: bb/passive
-    initialization:
-      c: 10
-  pho:
-    model: mops/tracer
-    initialization:
-      c: 1
-  sil:
-    model: interior_constant
-    parameters:
-      value: 7.7
+   insolation:
+      model: mops/insolation                     # model type [default=insolation]
+   radiation:
+      model: mops/radiation                      # model type [default=radiation]
+      parameters:
+         parfrac: 0.4                            # PAR fraction of shortwave radiation [fraction; default=0.4]
+         ACkw: 0.04                              # attenuation of water [1/m; default=0.04]
+      coupling:
+         sfac: insolation/sfac                   # net downwelling shortwave flux at water surface [W m-2; default=]
+   oxy:
+      model: mops/oxygen                         # model type [default=oxy]
+      long_name: oxygen                          # descriptive name for model instance [default=oxy]
+      initialization:
+         c: 220.0                                # concentration [mmol O2/m3; default=0.0]
+   carbon:
+      model: mops/carbon                         # model type [default=carbon]
+      parameters:
+         ocmip_alkfac: 6.78496000E+01            # alkalinity relative to salinity [meq/m3/PSU; default=6.78496273E+01]
+      initialization:
+         c: 2100.0                               # dissolved inorganic carbon [mmol C/m3; default=0.0]
+      coupling:
+         pho: pho/c                              # phosphate [mmol P m-3; default=]
+         sil: sil/data                           # silicate [mmol Si m-3; default=]
+   plankton:
+      model: mops/plankton                       # model type [default=plankton]
+      parameters:
+         TempB: 15.65                            # ref. temperature for T-dependent growth [degrees Celsius; default=15.65]
+         ACmuphy: 0.6                            # max. growth rate [1/day; default=0.6]
+         ACik: 9.653                             # light half-saturation constant [W/m2; default=9.653]
+         ACkpo4: 4.99500000E-01                  # half-saturation constant for PO4 uptake [mmol P/m3; default=4.99500000E-01]
+         ACkchl: 0.48                            # att. of Phy [1/(m*mmol P/m3); default=0.48]
+         AClambda: 0.03                          # exudation rate [1/day; default=0.03]
+         AComni: 0.0                             # density dep. loss rate [m3/(mmol P * day); default=0.0]
+         plambda: 0.01                           # phytoplankton mortality [1/d; default=0.01]
+         tf2: -4.20000000E-03                    # nitrogen fixation poly 2 [1/(d degC^2); default=-4.20000000E-03]
+         tf1: 2.25300000E-01                     # nitrogen fixation poly 1 [1/(d degC); default=2.25300000E-01]
+         tf0: -2.78190000E+00                    # nitrogen fixation poly 0 [1/d; default=-2.78190000E+00]
+         tff: 2.39500000E-01                     # nitrogen fixation normalization [1/d; default=2.39500000E-01]
+         nfix: 2.27207304E-03                    # max. nitrogen fixation [mmol N/m3/d; default=2.27207304E-03]
+         ACmuzoo: 1.893                          # max. grazing rate [1/d; default=1.893]
+         ACkphy: 8.59900000E-02                  # zoo half-saturation constant [mmol P/m3; default=8.59914603E-02]
+         AClambdaz: 0.03                         # zooplankton excretion [1/d; default=0.03]
+         AComniz: 4.548                          # zooplankton mortality [m3/(mmol P * day); default=4.548]
+         ACeff: 0.75                             # assimilation efficiency [fraction; default=0.75]
+         graztodop: 0.0                          # fraction grazing that goes into DOP [fraction; default=0.0]
+         zlambda: 0.01                           # zooplankton mortality [1/d; default=0.01]
+      initialization:
+         phy: 0.001                              # phytoplankton [mmol P/m3; min=0.0; default=0.0]
+         zoo: 0.001                              # zooplankton [mmol P/m3; min=0.0; default=0.0]
+      coupling:
+         dop: dop/c                              # dissolved organic phosphorus [mmol P/m3; default=]
+         det: det/c                              # detritus [mmol P/m3; default=]
+         oxy: oxy/c                              # oxygen [mmol O2/m3; default=]
+         din: din/c                              # dissolved inorganic nitrogen [mmol N/m3; default=]
+         po4: pho/c                              # phosphate [mmol P/m3; default=]
+         dic: carbon/c                           # dissolved inorganic carbon [mmol C/m3; default=]
+         ciz: radiation/ciz                      # PAR at top of the layer [W m-2; default=]
+         tau: insolation/stau                    # day length [d; default=]
+   remineralization:
+      model: mops/remineralization               # model type [default=remineralization]
+      parameters:
+         dlambda: 5.13333305E-04                 # DOP remineralization rate [1/d; default=5.13333305E-04]
+         detlambda: 0.05                         # detritus remineralization rate [1/d; default=0.05]
+         subox: 1.0                              # minimum oxygen for oxic degradation [mmol/m3; default=1.0]
+         subdin: 16.0                            # minimum DIN for denitrification [mmol/m3; default=16.0]
+         ACkbaco2: 1.14553200E+00                # Half sat.-constant for oxic degradation (see Kriest and Oschlies, 2015) [mmol/m3; default=1.14553200E+00]
+         ACkbacdin: 2.30835590E+01               # Half sat.-constant for suboxic degradation (see Kriest and Oschlies, 2015) [mmol/m3; default=2.30835590E+01]
+      coupling:
+         dop: dop/c                              # dissolved organic phosphorus [mmol P/m3; default=]
+         det: det/c                              # detritus [mmol P/m3; default=]
+         oxy: oxy/c                              # oxygen [mmol O2/m3; default=]
+         din: din/c                              # dissolved inorganic nitrogen [mmol N/m3; default=]
+         po4: pho/c                              # phosphate [mmol P/m3; default=]
+         dic: carbon/c                           # dissolved inorganic carbon [mmol C/m3; default=]
+   det:
+      model: mops/detritus                       # model type [default=det]
+      long_name: detritus                        # descriptive name for model instance [default=det]
+      parameters:
+         detlambda: 0.05                         # detritus remineralization rate [1/d; default=0.05]
+         detwb: 0.0                              # offset for detritus sinking [m/d; default=0.0]
+         detmartin: 0.858                        # exponent for Martin curve [dimensionless; default=0.858]
+         burdige_fac: 1.68280000E+00             # factor for sediment burial (see Kriest and Oschlies, 2013) [dimensionless; default=1.68280000E+00]
+         burdige_exp: 0.799                      # exponent for sediment burial (see Kriest and Oschlies, 2013) [dimensionless; default=0.799]
+   dop:
+      model: mops/tracer                         # model type [default=dop]
+      long_name: dissolved organic phosphorus    # descriptive name for model instance [default=dop]
+   din:
+      model: bb/passive                          # model type [default=din]
+      long_name: dissolved inorganic nitrogen    # descriptive name for model instance [default=din]
+      parameters:
+         units: mmol N/m3                        #  [default=mol m-3]
+         vertical_velocity: 0.0                  # vertical velocity (negative for settling, positive for rising) [m d-1; default=0.0]
+         specific_light_attenuation: 0.0         # specific light attenuation [m-1 (mmol N/m3)-1; default=0.0]
+         surface_flux: 0.0                       # surface flux (positive for into the water) [mmol N/m3 m d-1; default=0.0]
+         conserved: false                        # treat tracer as conserved quantity (activates budget tracking in host) [default=false]
+      initialization:
+         c: 10.0                                 # concentration [mmol N/m3; min=0.0; default=1.0]
+   pho:
+      model: mops/tracer                         # model type [default=pho]
+      long_name: phosphate                       # descriptive name for model instance [default=pho]
+      initialization:
+         c: 1.0                                  # concentration [mmol P/m3; default=0.0]
+   sil:
+      model: interior_constant                   # model type [default=sil]
+      parameters:
+         standard_name:                          # standard name [default=]
+         value: 7.7                              # value
