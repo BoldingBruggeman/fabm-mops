@@ -7,9 +7,11 @@ module mops_model_library
    use mops_radiation
    use mops_insolation
    use mops_plankton
+   use mops_nitrogen_fixation
    use mops_remineralization
    use mops_detritus
    use mops_tracer
+   use mops_runoff
 
    implicit none
 
@@ -35,9 +37,11 @@ contains
          case ('radiation'); allocate(type_mops_radiation::model)
          case ('insolation'); allocate(type_mops_insolation::model)
          case ('plankton'); allocate(type_mops_plankton::model)
+         case ('nitrogen_fixation'); allocate(type_mops_nitrogen_fixation::model)
          case ('remineralization'); allocate(type_mops_remineralization::model)
          case ('detritus'); allocate(type_mops_detritus::model)
          case ('tracer'); allocate(type_mops_tracer::model)
+         case ('runoff'); allocate(type_mops_runoff::model)
          ! Add new models here
          case default
             call self%type_base_model_factory%create(name, model)

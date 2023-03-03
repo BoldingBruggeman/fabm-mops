@@ -17,7 +17,6 @@ module mops_plankton
 
       real(rk) :: TempB, ACmuphy, ACik, ACkpo4, AClambda, AComni, plambda
       real(rk) :: ACmuzoo, ACkphy, AClambdaz, AComniz, ACeff, graztodop, zlambda
-      real(rk) :: tf0, tf1, tf2, tff, nfix
    contains
       ! Model procedures
       procedure :: initialize
@@ -41,22 +40,6 @@ contains
       call self%get_parameter(self%AComni, 'AComni', 'm3/(mmol P * day)','density dep. loss rate', default=0.0_rk) 
       call self%get_parameter(self%plambda, 'plambda', '1/d','phytoplankton mortality', default=0.01_rk) 
 
-! N2-Fixatioon
-! Factors tf2, tf1 and tf0 are a polynomial (2nd order) 
-! approximation to the functional relationship by Breitbarth et al. (2007),
-! for temperature dependence of Trichodesmium growth, 
-! their eq. (2), assuming that their powers relate to "e" (10^), and
-! that the last but one sign has to be reversed.
-! The relation will be scaled to their max. growth rate.
-! Note that the second order approx. is basically similar to their
-! function 2 for T-dependent nitrogen fixation multiplied by 4 
-! (2 [N atoms per mole] * 12 [light hrs per day]/6 [C-atoms per N-atoms])
-      call self%get_parameter(self%tf2, 'tf2', '1/(d degC^2)','nitrogen fixation poly 2', default=-0.0042_rk) 
-      call self%get_parameter(self%tf1, 'tf1', '1/(d degC)','nitrogen fixation poly 1', default=0.2253_rk) 
-      call self%get_parameter(self%tf0, 'tf0', '1/d','nitrogen fixation poly 0', default=-2.7819_rk) 
-      call self%get_parameter(self%tff, 'tff', '1/d','nitrogen fixation normalization', default=0.2395_rk) 
-      call self%get_parameter(self%nfix, 'nfix', 'mmol N/m3/d','max. nitrogen fixation', default=0.002272073044_rk) 
-
       call self%get_parameter(self%ACmuzoo, 'ACmuzoo', '1/d','max. grazing rate', default=1.893_rk)
       call self%get_parameter(self%ACkphy, 'ACkphy', 'mmol P/m3','zoo half-saturation constant', default=SQRT(self%ACmuzoo/1.0_rk)/rnp)
       call self%get_parameter(self%AClambdaz, 'AClambdaz', '1/d','zooplankton excretion', default=0.03_rk)
@@ -70,7 +53,6 @@ contains
 
       call self%register_diagnostic_variable(self%id_f1, 'f1', 'mmol P/m3/d', 'phytoplankton growth rate')
       call self%register_diagnostic_variable(self%id_f2, 'f2', 'mmol P/m3/d', 'zooplankton grazing')
-      call self%register_diagnostic_variable(self%id_f6, 'f6', 'mmol N/m3/d', 'nitrogen fixation')
 
       call self%register_state_dependency(self%id_dop, 'dop', 'mmol P/m3', 'dissolved organic phosphorus')
       call self%register_state_dependency(self%id_det, 'det', 'mmol P/m3', 'detritus')
@@ -100,7 +82,6 @@ contains
       real(rk) :: bgc_theta, bgc_dz, ciz, bgc_tau, att, PO4, DIN, PHY, ZOO
       real(rk) :: tempscale, TACmuphy, TACik, atten, glbygd, flightlim, limnut, fnutlim, phygrow0, phygrow, phyexu, phyloss
       real(rk) :: graz0, graz, zooexu, zooloss
-      real(rk) :: ttemp, nfixtfac, dinlim, nfixnfac, nfixation
       real(rk) :: topo4
 
       _LOOP_BEGIN_
@@ -196,26 +177,9 @@ contains
 
        endif !ZOO
 
-! Relaxation of N:P to Redfield values (mimick cyanobacteria)
-
-       if(PO4.gt.vsafe) then
-
-         ttemp = bgc_theta
-         nfixtfac = MAX(0.0_rk,self%tf2*ttemp*ttemp + self%tf1*ttemp + self%tf0)/self%tff
-         dinlim = MAX(0.0_rk,DIN)
-         nfixnfac = MAX(0.0_rk, 1.0_rk-dinlim/(PO4*rnp))
-         nfixation = nfixtfac*nfixnfac*self%nfix
-
-       else
-
-          nfixation = 0.0_rk
-
-       endif
-
 ! Photosynthesis stored in this array for diagnostic purposes only.
        _SET_DIAGNOSTIC_(self%id_f1, phygrow)
        _SET_DIAGNOSTIC_(self%id_f2, graz)
-       _SET_DIAGNOSTIC_(self%id_f6, nfixation)
 
 ! Collect all euphotic zone fluxes in these arrays.
         topo4 = -phygrow+zooexu
@@ -225,7 +189,7 @@ contains
         _ADD_SOURCE_(self%id_phy, phygrow-graz-phyexu-phyloss)
         _ADD_SOURCE_(self%id_zoo, self%ACeff*graz-zooexu-zooloss)
         _ADD_SOURCE_(self%id_det, (1.0_rk-self%graztodop)*(1.0_rk-self%ACeff)*graz + (1.0_rk-self%graztodop)*(phyexu+zooloss))
-        _ADD_SOURCE_(self%id_din, topo4*rnp + nfixation)
+        _ADD_SOURCE_(self%id_din, topo4*rnp)
         _ADD_SOURCE_(self%id_dic, topo4*rcp)
 
          PHY = MAX(PHY - alimit*alimit, 0.0_rk)

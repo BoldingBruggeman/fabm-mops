@@ -11,7 +11,7 @@ module mops_radiation
    type, extends(type_base_model), public :: type_mops_radiation
       type (type_horizontal_dependency_id) :: id_bgc_swr, id_bgc_seaice
       type (type_dependency_id)            :: id_bgc_dz, id_att
-      type (type_diagnostic_variable_id)   :: id_ciz, id_atten
+      type (type_diagnostic_variable_id)   :: id_ciz
 
       ! Parameters
       real(rk) :: parfrac
@@ -29,22 +29,21 @@ contains
 
       real(rk) :: ACkw
 
-      call self%get_parameter(self%parfrac, 'parfrac', '1', 'PAR fraction of shortwave radiation', default=0.4_rk) 
-      call self%get_parameter(ACkw, 'ACkw', '1/m','attenuation of water', default=0.04_rk) 
+      call self%get_parameter(self%parfrac, 'parfrac', '1', 'PAR fraction of shortwave radiation', default=0.4_rk)
+      call self%get_parameter(ACkw, 'ACkw', '1/m','attenuation of water', default=0.04_rk)
 
       call self%add_to_aggregate_variable(standard_variables%attenuation_coefficient_of_photosynthetic_radiative_flux, ACkw)
 
       ! Register diagnostic variables
       call self%register_diagnostic_variable(self%id_ciz, 'ciz', 'W m-2', 'PAR at top of the layer', source=source_do_column)
-      call self%register_diagnostic_variable(self%id_atten, 'atten', '-', 'attenuation across the layer', source=source_do_column)
 
       ! Register environmental dependencies
       call self%register_dependency(self%id_bgc_dz, standard_variables%cell_thickness)
       call self%register_dependency(self%id_bgc_swr, 'sfac', 'W m-2', 'net downwelling shortwave flux at water surface')
       call self%register_dependency(self%id_bgc_seaice, standard_variables%ice_area_fraction)
       call self%register_dependency(self%id_att, standard_variables%attenuation_coefficient_of_photosynthetic_radiative_flux)
-end subroutine
-   
+   end subroutine
+
    subroutine do_column(self, _ARGUMENTS_DO_COLUMN_)
       class (type_mops_radiation), intent(in) :: self
       _DECLARE_ARGUMENTS_DO_COLUMN_
@@ -60,7 +59,6 @@ end subroutine
          _GET_(self%id_att,att)           ! Attenuation by water and phytoplankton combined (1/m)
          atten = att*bgc_dz
          ciz = ciz * exp(-atten)
-         _SET_DIAGNOSTIC_(self%id_atten,atten)
       _DOWNWARD_LOOP_END_
    end subroutine do_column
 

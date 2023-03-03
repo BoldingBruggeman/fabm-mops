@@ -13,6 +13,7 @@ module mops_detritus
       type (type_dependency_id) :: id_bgc_z
       type (type_bottom_dependency_id) :: id_bgc_z_bot
       type (type_state_variable_id) :: id_det
+      type (type_bottom_diagnostic_variable_id) :: id_burial
 
       real(rk) :: detlambda, detwb, detmartin
       real(rk) :: burdige_fac, burdige_exp
@@ -37,6 +38,8 @@ contains
 
       call self%register_state_variable(self%id_det, 'c', 'mmol P/m3', 'detritus', minimum=0.0_rk)
       call self%add_to_aggregate_variable(standard_variables%total_phosphorus, self%id_det)
+
+      call self%register_diagnostic_variable(self%id_burial, 'burial', 'mmol P/m2/d', 'burial')
 
       ! Register environmental dependencies
       call self%register_dependency(self%id_bgc_z, standard_variables%depth)
@@ -71,8 +74,9 @@ contains
          _GET_(self%id_det, DET)
          wdet = self%detwb + bgc_z*detwa
          fDET = wdet*DET
-        flux_l = MIN(1.0_rk,self%burdige_fac*fDET**self%burdige_exp)*fDET
-        _ADD_BOTTOM_FLUX_(self%id_det, -flux_l)
+         flux_l = MIN(1.0_rk,self%burdige_fac*fDET**self%burdige_exp)*fDET
+         _ADD_BOTTOM_FLUX_(self%id_det, -flux_l)
+         _SET_BOTTOM_DIAGNOSTIC_(self%id_burial, flux_l)
       _BOTTOM_LOOP_END_
 
    end subroutine

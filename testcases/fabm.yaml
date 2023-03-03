@@ -33,11 +33,6 @@ instances:
          AClambda: 0.03                          # exudation rate [1/day; default=0.03]
          AComni: 0.0                             # density dep. loss rate [m3/(mmol P * day); default=0.0]
          plambda: 0.01                           # phytoplankton mortality [1/d; default=0.01]
-         tf2: -4.20000000E-03                    # nitrogen fixation poly 2 [1/(d degC^2); default=-4.20000000E-03]
-         tf1: 2.25300000E-01                     # nitrogen fixation poly 1 [1/(d degC); default=2.25300000E-01]
-         tf0: -2.78190000E+00                    # nitrogen fixation poly 0 [1/d; default=-2.78190000E+00]
-         tff: 2.39500000E-01                     # nitrogen fixation normalization [1/d; default=2.39500000E-01]
-         nfix: 2.27207304E-03                    # max. nitrogen fixation [mmol N/m3/d; default=2.27207304E-03]
          ACmuzoo: 1.893                          # max. grazing rate [1/d; default=1.893]
          ACkphy: 8.59900000E-02                  # zoo half-saturation constant [mmol P/m3; default=8.59914603E-02]
          AClambdaz: 0.03                         # zooplankton excretion [1/d; default=0.03]
@@ -57,6 +52,17 @@ instances:
          dic: carbon/c                           # dissolved inorganic carbon [mmol C/m3; default=]
          ciz: radiation/ciz                      # PAR at top of the layer [W m-2; default=]
          tau: insolation/stau                    # day length [d; default=]
+   nitrogen_fixation:
+      model: mops/nitrogen_fixation              # model type [default=nitrogen_fixation]
+      parameters:
+         tf2: -4.20000000E-03                    # quadratic coefficient for temperature dependence [1/(d degC^2); default=-4.20000000E-03]
+         tf1: 2.25300000E-01                     # linear coefficient for temperature dependence [1/(d degC); default=2.25300000E-01]
+         tf0: -2.78190000E+00                    # constant coefficient for temperature dependence [1/d; default=-2.78190000E+00]
+         tff: 2.39500000E-01                     # normalization factor for temperature dependence [1/d; default=2.39500000E-01]
+         nfix: 2.27207304E-03                    # max. fixation rate [mmol N/m3/d; default=2.27207304E-03]
+      coupling:
+         din: din/c                              # dissolved inorganic nitrogen [mmol N/m3; default=]
+         po4: pho/c                              # phosphate [mmol P/m3; default=]
    remineralization:
       model: mops/remineralization               # model type [default=remineralization]
       parameters:

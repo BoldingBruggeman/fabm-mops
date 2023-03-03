@@ -9,6 +9,8 @@ add_library(fabm_models_mops OBJECT
             remineralization.F90
             detritus.F90
             tracer.F90
+            nitrogen_fixation.F90
+            runoff.F90
            )
 
 add_dependencies(fabm_models_mops fabm_base)
