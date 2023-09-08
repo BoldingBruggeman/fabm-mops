@@ -13,7 +13,7 @@ module mops_plankton
       type (type_dependency_id) :: id_bgc_theta, id_bgc_dz, id_ciz, id_att
       type (type_surface_dependency_id) :: id_bgc_tau
       type (type_state_variable_id) :: id_phy, id_zoo, id_po4, id_din, id_oxy, id_det, id_dop, id_dic
-      type (type_diagnostic_variable_id) :: id_f1, id_f2, id_f6
+      type (type_diagnostic_variable_id) :: id_f1, id_f2, id_f6, id_chl
 
       real(rk) :: TempB, ACmuphy, ACik, ACkpo4, AClambda, AComni, plambda
       real(rk) :: ACmuzoo, ACkphy, AClambdaz, AComniz, ACeff, graztodop, zlambda
@@ -22,6 +22,8 @@ module mops_plankton
       procedure :: initialize
       procedure :: do
    end type type_mops_plankton
+
+   type (type_bulk_standard_variable), parameter :: total_chlorophyll = type_bulk_standard_variable(name='total_chlorophyll',units='mg/m^3',aggregate_variable=.true.)
 
 contains
 
@@ -53,6 +55,7 @@ contains
 
       call self%register_diagnostic_variable(self%id_f1, 'f1', 'mmol P/m3/d', 'phytoplankton growth rate')
       call self%register_diagnostic_variable(self%id_f2, 'f2', 'mmol P/m3/d', 'zooplankton grazing')
+      call self%register_diagnostic_variable(self%id_chl, 'chl', 'mg/m3/d', 'chlorophyll')
 
       call self%register_state_dependency(self%id_dop, 'dop', 'mmol P/m3', 'dissolved organic phosphorus')
       call self%register_state_dependency(self%id_det, 'det', 'mmol P/m3', 'detritus')
@@ -71,6 +74,7 @@ contains
       call self%add_to_aggregate_variable(standard_variables%attenuation_coefficient_of_photosynthetic_radiative_flux, self%id_phy, scale_factor=ACkchl)
       call self%add_to_aggregate_variable(standard_variables%total_phosphorus, self%id_phy)
       call self%add_to_aggregate_variable(standard_variables%total_phosphorus, self%id_zoo)
+      call self%add_to_aggregate_variable(total_chlorophyll, self%id_chl)
 
       self%dt = 86400.0_rk
    end subroutine
@@ -180,6 +184,9 @@ contains
 ! Photosynthesis stored in this array for diagnostic purposes only.
        _SET_DIAGNOSTIC_(self%id_f1, phygrow)
        _SET_DIAGNOSTIC_(self%id_f2, graz)
+
+! JB constant chlorophyll:carbon (IK pers comm 2023-03-07)
+       _SET_DIAGNOSTIC_(self%id_chl, 50._rk * PHY)
 
 ! Collect all euphotic zone fluxes in these arrays.
         topo4 = -phygrow+zooexu
