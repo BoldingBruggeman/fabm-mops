@@ -10,8 +10,8 @@ module mops_nitrogen_fixation
    private
 
    type, extends(type_base_model), public :: type_mops_nitrogen_fixation
-      type (type_dependency_id) :: id_bgc_theta
-      type (type_state_variable_id) :: id_po4, id_din
+      type (type_dependency_id) :: id_bgc_theta, id_po4
+      type (type_state_variable_id) :: id_din
       type (type_diagnostic_variable_id) :: id_f6
 
       real(rk) :: tf0, tf1, tf2, tff, nfix
@@ -41,12 +41,12 @@ contains
       call self%get_parameter(self%tf1, 'tf1', '1/(d degC)','linear coefficient for temperature dependence', default=0.2253_rk)
       call self%get_parameter(self%tf0, 'tf0', '1/d','constant coefficient for temperature dependence', default=-2.7819_rk)
       call self%get_parameter(self%tff, 'tff', '1/d','normalization factor for temperature dependence', default=0.2395_rk)
-      call self%get_parameter(self%nfix, 'nfix', 'mmol N/m3/d','max. fixation rate', default=0.002272073044_rk)
+      call self%get_parameter(self%nfix, 'nfix', 'mmol N/m3/d','max. rate', default=0.002272073044_rk)
 
-      call self%register_diagnostic_variable(self%id_f6, 'f6', 'mmol N/m3/d', 'nitrogen fixation')
+      call self%register_diagnostic_variable(self%id_f6, 'f6', 'mmol N/m3/d', 'rate')
 
       call self%register_state_dependency(self%id_din, 'din', 'mmol N/m3', 'dissolved inorganic nitrogen')
-      call self%register_state_dependency(self%id_po4, 'po4', 'mmol P/m3', 'phosphate')
+      call self%register_dependency(self%id_po4, 'po4', 'mmol P/m3', 'phosphate')
 
       ! Register environmental dependencies
       call self%register_dependency(self%id_bgc_theta, standard_variables%temperature)

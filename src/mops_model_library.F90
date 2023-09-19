@@ -6,7 +6,8 @@ module mops_model_library
    use mops_oxygen
    use mops_radiation
    use mops_insolation
-   use mops_plankton
+   use mops_phytoplankton
+   use mops_zooplankton
    use mops_nitrogen_fixation
    use mops_remineralization
    use mops_detritus
@@ -36,7 +37,8 @@ contains
          case ('oxygen');    allocate(type_mops_oxygen::model)
          case ('radiation'); allocate(type_mops_radiation::model)
          case ('insolation'); allocate(type_mops_insolation::model)
-         case ('plankton'); allocate(type_mops_plankton::model)
+         case ('phytoplankton'); allocate(type_mops_phytoplankton::model)
+         case ('zooplankton'); allocate(type_mops_zooplankton::model)
          case ('nitrogen_fixation'); allocate(type_mops_nitrogen_fixation::model)
          case ('remineralization'); allocate(type_mops_remineralization::model)
          case ('detritus'); allocate(type_mops_detritus::model)

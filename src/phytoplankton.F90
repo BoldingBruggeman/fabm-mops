@@ -1,6 +1,6 @@
 #include "fabm_driver.h"
 
-module mops_plankton
+module mops_phytoplankton
 
    use fabm_types
    use mops_shared
@@ -9,52 +9,42 @@ module mops_plankton
 
    private
 
-   type, extends(type_base_model), public :: type_mops_plankton
+   type, extends(type_base_model), public :: type_mops_phytoplankton
       type (type_dependency_id) :: id_bgc_theta, id_bgc_dz, id_ciz, id_att
       type (type_surface_dependency_id) :: id_bgc_tau
-      type (type_state_variable_id) :: id_phy, id_zoo, id_po4, id_din, id_oxy, id_det, id_dop, id_dic
-      type (type_diagnostic_variable_id) :: id_f1, id_f2, id_f6, id_chl
+      type (type_state_variable_id) :: id_c, id_po4, id_din, id_oxy, id_det, id_dop, id_dic
+      type (type_diagnostic_variable_id) :: id_f1, id_chl
 
-      real(rk) :: TempB, ACmuphy, ACik, ACkpo4, AClambda, AComni, plambda
-      real(rk) :: ACmuzoo, ACkphy, AClambdaz, AComniz, ACeff, graztodop, zlambda
+      real(rk) :: TempB, ACmuphy, ACik, ACkpo4, AClambda, AComni, plambda, exutodop
    contains
       ! Model procedures
       procedure :: initialize
       procedure :: do
-   end type type_mops_plankton
+   end type
 
    type (type_bulk_standard_variable), parameter :: total_chlorophyll = type_bulk_standard_variable(name='total_chlorophyll',units='mg/m^3',aggregate_variable=.true.)
 
 contains
 
    subroutine initialize(self, configunit)
-      class (type_mops_plankton), intent(inout), target :: self
-      integer,                    intent(in)            :: configunit
+      class (type_mops_phytoplankton), intent(inout), target :: self
+      integer,                         intent(in)            :: configunit
 
       real(rk) :: ACkchl
 
-      call self%get_parameter(self%TempB, 'TempB', 'degrees Celsius','ref. temperature for T-dependent growth', default=15.65_rk) 
+      call self%get_parameter(self%TempB, 'TempB', 'degrees Celsius','reference temperature for T-dependent growth', default=15.65_rk) 
       call self%get_parameter(self%ACmuphy, 'ACmuphy', '1/day','max. growth rate', default=0.6_rk) 
       call self%get_parameter(self%ACik, 'ACik', 'W/m2','light half-saturation constant', default=9.653_rk) 
       call self%get_parameter(self%ACkpo4, 'ACkpo4', 'mmol P/m3','half-saturation constant for PO4 uptake', default=0.4995_rk) 
-      call self%get_parameter(ACkchl, 'ACkchl', '1/(m*mmol P/m3)','att. of Phy', default=0.03_rk*rnp) 
+      call self%get_parameter(ACkchl, 'ACkchl', '1/(m*mmol P/m3)','attenuation', default=0.03_rk*rnp) 
       call self%get_parameter(self%AClambda, 'AClambda', '1/day','exudation rate', default=0.03_rk) 
-      call self%get_parameter(self%AComni, 'AComni', 'm3/(mmol P * day)','density dep. loss rate', default=0.0_rk) 
-      call self%get_parameter(self%plambda, 'plambda', '1/d','phytoplankton mortality', default=0.01_rk) 
+      call self%get_parameter(self%exutodop, 'exutodop', '1','fraction of exudation that goes into DOP', default=0.0_rk)
+      call self%get_parameter(self%AComni, 'AComni', 'm3/(mmol P * day)','density dependent loss rate', default=0.0_rk) 
+      call self%get_parameter(self%plambda, 'plambda', '1/d','mortality', default=0.01_rk) 
 
-      call self%get_parameter(self%ACmuzoo, 'ACmuzoo', '1/d','max. grazing rate', default=1.893_rk)
-      call self%get_parameter(self%ACkphy, 'ACkphy', 'mmol P/m3','zoo half-saturation constant', default=SQRT(self%ACmuzoo/1.0_rk)/rnp)
-      call self%get_parameter(self%AClambdaz, 'AClambdaz', '1/d','zooplankton excretion', default=0.03_rk)
-      call self%get_parameter(self%AComniz, 'AComniz', 'm3/(mmol P * day)','zooplankton mortality', default=4.548_rk)
-      call self%get_parameter(self%ACeff, 'ACeff', '1','assimilation efficiency', default=0.75_rk)
-      call self%get_parameter(self%graztodop, 'graztodop', '1','fraction grazing that goes into DOP', default=0.0_rk)
-      call self%get_parameter(self%zlambda, 'zlambda', '1/d','zooplankton mortality', default=0.01_rk)
+      call self%register_state_variable(self%id_c, 'c', 'mmol P/m3', 'concentration', minimum=0.0_rk)
 
-      call self%register_state_variable(self%id_phy, 'phy', 'mmol P/m3', 'phytoplankton', minimum=0.0_rk)
-      call self%register_state_variable(self%id_zoo, 'zoo', 'mmol P/m3', 'zooplankton', minimum=0.0_rk)
-
-      call self%register_diagnostic_variable(self%id_f1, 'f1', 'mmol P/m3/d', 'phytoplankton growth rate')
-      call self%register_diagnostic_variable(self%id_f2, 'f2', 'mmol P/m3/d', 'zooplankton grazing')
+      call self%register_diagnostic_variable(self%id_f1, 'f1', 'mmol P/m3/d', 'growth rate')
       call self%register_diagnostic_variable(self%id_chl, 'chl', 'mg/m3/d', 'chlorophyll')
 
       call self%register_state_dependency(self%id_dop, 'dop', 'mmol P/m3', 'dissolved organic phosphorus')
@@ -71,22 +61,19 @@ contains
       call self%register_dependency(self%id_bgc_dz, standard_variables%cell_thickness)
       call self%register_dependency(self%id_att, standard_variables%attenuation_coefficient_of_photosynthetic_radiative_flux)
 
-      call self%add_to_aggregate_variable(standard_variables%attenuation_coefficient_of_photosynthetic_radiative_flux, self%id_phy, scale_factor=ACkchl)
-      call self%add_to_aggregate_variable(standard_variables%total_phosphorus, self%id_phy)
-      call self%add_to_aggregate_variable(standard_variables%total_phosphorus, self%id_zoo)
+      call self%add_to_aggregate_variable(standard_variables%attenuation_coefficient_of_photosynthetic_radiative_flux, self%id_c, scale_factor=ACkchl)
+      call self%add_to_aggregate_variable(standard_variables%total_phosphorus, self%id_c)
       call self%add_to_aggregate_variable(total_chlorophyll, self%id_chl)
 
       self%dt = 86400.0_rk
    end subroutine
 
    subroutine do(self, _ARGUMENTS_DO_)
-      class (type_mops_plankton), intent(in) :: self
+      class (type_mops_phytoplankton), intent(in) :: self
       _DECLARE_ARGUMENTS_DO_
 
-      real(rk) :: bgc_theta, bgc_dz, ciz, bgc_tau, att, PO4, DIN, PHY, ZOO
+      real(rk) :: bgc_theta, bgc_dz, ciz, bgc_tau, att, PO4, DIN, PHY
       real(rk) :: tempscale, TACmuphy, TACik, atten, glbygd, flightlim, limnut, fnutlim, phygrow0, phygrow, phyexu, phyloss
-      real(rk) :: graz0, graz, zooexu, zooloss
-      real(rk) :: topo4
 
       _LOOP_BEGIN_
 
@@ -98,8 +85,7 @@ contains
 
       _GET_(self%id_po4, PO4)
       _GET_(self%id_din, DIN)
-      _GET_(self%id_phy, PHY)
-      _GET_(self%id_zoo, ZOO)
+      _GET_(self%id_c,   PHY)
 
 ! temperature dependence of phytoplankton growth (Eppley)
 ! this affects the light-half-saturation constant via acik=acmuphy/alpha
@@ -151,59 +137,24 @@ contains
 
        endif !PHY
 
-       if(ZOO.gt.0.0_rk) then
-
-         if(PHY.gt.0.0_rk) then
-
-! Grazing of zooplankton, Holling III
-           graz0=self%ACmuzoo*PHY*PHY/(self%ACkphy*self%ACkphy+PHY*PHY)*ZOO
-
-! Make sure not to graze more phytoplankton than available.
-           graz = MIN(PHY,graz0*bgc_dt)/bgc_dt
-
-         else !PHY < 0
-
-           graz=0.0_rk
-
-         endif !ZOO
-
-! Zooplankton exudation
-          zooexu = self%AClambdaz * ZOO
-
-! Zooplankton mortality 
-          zooloss = self%AComniz * ZOO * ZOO
-
-       else !ZOO < 0
-
-           graz   =0.0_rk
-           zooexu = 0.0_rk
-           zooloss = 0.0_rk
-
-       endif !ZOO
-
 ! Photosynthesis stored in this array for diagnostic purposes only.
        _SET_DIAGNOSTIC_(self%id_f1, phygrow)
-       _SET_DIAGNOSTIC_(self%id_f2, graz)
 
 ! JB constant chlorophyll:carbon (IK pers comm 2023-03-07)
        _SET_DIAGNOSTIC_(self%id_chl, 50._rk * PHY)
 
 ! Collect all euphotic zone fluxes in these arrays.
-        topo4 = -phygrow+zooexu
-        _ADD_SOURCE_(self%id_po4, topo4)
-        _ADD_SOURCE_(self%id_dop, self%graztodop*(1.0_rk-self%ACeff)*graz + self%graztodop*(phyexu+zooloss) + phyloss)
-        _ADD_SOURCE_(self%id_oxy, (phygrow-zooexu)*ro2ut)
-        _ADD_SOURCE_(self%id_phy, phygrow-graz-phyexu-phyloss)
-        _ADD_SOURCE_(self%id_zoo, self%ACeff*graz-zooexu-zooloss)
-        _ADD_SOURCE_(self%id_det, (1.0_rk-self%graztodop)*(1.0_rk-self%ACeff)*graz + (1.0_rk-self%graztodop)*(phyexu+zooloss))
-        _ADD_SOURCE_(self%id_din, topo4*rnp)
-        _ADD_SOURCE_(self%id_dic, topo4*rcp)
+        _ADD_SOURCE_(self%id_c,   phygrow-phyexu-phyloss)
+        _ADD_SOURCE_(self%id_po4, -phygrow)
+        _ADD_SOURCE_(self%id_dop, self%exutodop*phyexu + phyloss)
+        _ADD_SOURCE_(self%id_oxy, phygrow*ro2ut)
+        _ADD_SOURCE_(self%id_det, (1.0_rk-self%exutodop)*phyexu)
+        _ADD_SOURCE_(self%id_din, -phygrow*rnp)
+        _ADD_SOURCE_(self%id_dic, -phygrow*rcp)
 
          PHY = MAX(PHY - alimit*alimit, 0.0_rk)
-         ZOO = MAX(ZOO - alimit*alimit, 0.0_rk)
-         _ADD_SOURCE_(self%id_phy, -self%plambda*PHY)
-         _ADD_SOURCE_(self%id_zoo, -self%zlambda*ZOO)
-         _ADD_SOURCE_(self%id_dop, self%plambda*PHY+self%zlambda*ZOO)
+         _ADD_SOURCE_(self%id_c,   -self%plambda*PHY)
+         _ADD_SOURCE_(self%id_dop,  self%plambda*PHY)
 
       _LOOP_END_
    end subroutine do
@@ -220,4 +171,4 @@ contains
       endif
    END FUNCTION
 
-end module mops_plankton
+end module mops_phytoplankton

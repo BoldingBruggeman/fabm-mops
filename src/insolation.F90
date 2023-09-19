@@ -47,7 +47,7 @@ contains
        real(rk) :: daysperyear = 365.2425_rk
 
 ! !LOCAL VARIABLES: ====================================================
-       real(rk) ::  solar, albedo, par
+       real(rk) ::  solar, albedo
        real(rk) ::  dayfrac, yday, delta
        real(rk) ::  lat, sun1, dayhrs
        real(rk) ::  cosz, frac, fluxi, fracmin, sfac

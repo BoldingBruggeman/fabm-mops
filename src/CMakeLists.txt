@@ -5,7 +5,8 @@ add_library(fabm_models_mops OBJECT
             oxygen.F90
             insolation.F90
             radiation.F90
-            plankton.F90
+            phytoplankton.F90
+            zooplankton.F90
             remineralization.F90
             detritus.F90
             tracer.F90
