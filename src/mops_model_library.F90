@@ -43,9 +43,8 @@ contains
          case ('remineralization'); allocate(type_mops_remineralization::model)
          case ('detritus'); allocate(type_mops_detritus::model)
          case ('tracer'); allocate(type_mops_tracer::model)
-         case ('surface_runoff'); allocate(type_mops_surface_runoff::model)
-         case ('interior_runoff'); allocate(type_mops_interior_runoff::model)
-            ! Add new models here
+         case ('runoff'); allocate(type_mops_runoff::model)
+         ! Add new models here
          case default
             call self%type_base_model_factory%create(name, model)
       end select
