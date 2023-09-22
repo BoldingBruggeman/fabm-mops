@@ -42,7 +42,7 @@ instances:
          det: det/c                              # detritus [mmol P/m3; default=]
          oxy: oxy/c                              # oxygen [mmol O2/m3; default=]
          din: din/c                              # dissolved inorganic nitrogen [mmol N/m3; default=]
-         po4: pho/c                              # phosphate [mmol P/m3; default=]
+         pho: pho/c                              # phosphate [mmol P/m3; default=]
          dic: carbon/c                           # dissolved inorganic carbon [mmol C/m3; default=]
          ciz: radiation/ciz                      # PAR at top of the layer [W m-2; default=]
          tau: insolation/stau                    # day length [d; default=]
@@ -65,7 +65,7 @@ instances:
          det: det/c                              # detritus [mmol P/m3; default=]
          oxy: oxy/c                              # oxygen [mmol O2/m3; default=]
          din: din/c                              # dissolved inorganic nitrogen [mmol N/m3; default=]
-         po4: pho/c                              # phosphate [mmol P/m3; default=]
+         pho: pho/c                              # phosphate [mmol P/m3; default=]
          dic: carbon/c                           # dissolved inorganic carbon [mmol C/m3; default=]
    nitrogen_fixation:
       model: mops/nitrogen_fixation              # model type
@@ -78,7 +78,7 @@ instances:
          nfix: 2.27207304E-03                    # max. rate [mmol N/m3/d; default=2.27207304E-03]
       coupling:
          din: din/c                              # dissolved inorganic nitrogen [mmol N/m3; default=]
-         po4: pho/c                              # phosphate [mmol P/m3; default=]
+         pho: pho/c                              # phosphate [mmol P/m3; default=]
    remineralization:
       model: mops/remineralization               # model type
       parameters:
@@ -93,7 +93,7 @@ instances:
          det: det/c                              # detritus [mmol P/m3; default=]
          oxy: oxy/c                              # oxygen [mmol O2/m3; default=]
          din: din/c                              # dissolved inorganic nitrogen [mmol N/m3; default=]
-         po4: pho/c                              # phosphate [mmol P/m3; default=]
+         pho: pho/c                              # phosphate [mmol P/m3; default=]
          dic: carbon/c                           # dissolved inorganic carbon [mmol C/m3; default=]
    det:
       model: mops/detritus                       # model type

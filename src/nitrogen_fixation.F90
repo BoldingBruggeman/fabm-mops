@@ -46,7 +46,7 @@ contains
       call self%register_diagnostic_variable(self%id_f6, 'f6', 'mmol N/m3/d', 'rate')
 
       call self%register_state_dependency(self%id_din, 'din', 'mmol N/m3', 'dissolved inorganic nitrogen')
-      call self%register_dependency(self%id_po4, 'po4', 'mmol P/m3', 'phosphate')
+      call self%register_dependency(self%id_po4, 'pho', 'mmol P/m3', 'phosphate')
 
       ! Register environmental dependencies
       call self%register_dependency(self%id_bgc_theta, standard_variables%temperature)

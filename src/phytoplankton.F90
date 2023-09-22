@@ -51,7 +51,7 @@ contains
       call self%register_state_dependency(self%id_det, 'det', 'mmol P/m3', 'detritus')
       call self%register_state_dependency(self%id_oxy, 'oxy', 'mmol O2/m3', 'oxygen')
       call self%register_state_dependency(self%id_din, 'din', 'mmol N/m3', 'dissolved inorganic nitrogen')
-      call self%register_state_dependency(self%id_po4, 'po4', 'mmol P/m3', 'phosphate')
+      call self%register_state_dependency(self%id_po4, 'pho', 'mmol P/m3', 'phosphate')
       call self%register_state_dependency(self%id_dic, 'dic', 'mmol C/m3', 'dissolved inorganic carbon')
 
       ! Register environmental dependencies
