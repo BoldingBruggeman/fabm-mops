@@ -13,7 +13,7 @@ module mops_carbon
       type (type_state_variable_id) :: id_dic
       type (type_dependency_id) :: id_pho, id_sil, id_bgc_salt, id_bgc_theta
       type (type_surface_dependency_id) :: id_bgc_wind, id_bgc_seaice, id_bgc_atmosp, id_pco2atm, id_surf_ph_in
-      type (type_surface_diagnostic_variable_id) :: id_surf_ph
+      type (type_surface_diagnostic_variable_id) :: id_surf_ph, id_gasex
 
       ! Parameters
       real(rk) :: ocmip_alkfac
@@ -34,6 +34,7 @@ contains
       call self%get_parameter(self%ocmip_alkfac, 'ocmip_alkfac', 'meq/m3/PSU', 'alkalinity relative to salinity', default=2310.0_rk*1.0245_rk/34.88_rk)
 
       call self%register_diagnostic_variable(self%id_surf_ph, 'surf_ph', '-', 'surface pH', missing_value=8.0_rk)
+      call self%register_diagnostic_variable(self%id_gasex, 'gasex', 'mmol C/m2/d', 'air-sea exchange of CO2')
 
       ! Register environmental dependencies
       call self%register_dependency(self%id_pho, 'pho', 'mmol P m-3', 'phosphate')
@@ -82,6 +83,7 @@ contains
              surf_ph,co2gasex)
 
          _ADD_SURFACE_FLUX_(self%id_dic, co2gasex)
+         _SET_SURFACE_DIAGNOSTIC_(self%id_gasex, co2gasex)
          _SET_SURFACE_DIAGNOSTIC_(self%id_surf_ph, surf_ph)
       _SURFACE_LOOP_END_
    end subroutine do_surface
