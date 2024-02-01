@@ -23,13 +23,17 @@ instances:
          pho: pho/c                              # phosphate [mmol P m-3; default=]
          sil: sil/data                           # silicate [mmol Si m-3; default=]
    phy:
+# Volkmar: changed values of ACik and ACkpo4 for comparison with PETSC3.13 version in
+# blogin/scratch/usr/shmvolki/models/TMM-MOPS/sim-single/MIT28/sim-01-02-2024
       model: mops/phytoplankton                  # model type
       long_name: phytoplankton                   # descriptive name for model instance [default=phy]
       parameters:
          TempB: 15.65                            # reference temperature for T-dependent growth [degrees Celsius; default=15.65]
          ACmuphy: 0.6                            # max. growth rate [1/day; default=0.6]
-         ACik: 9.653                             # light half-saturation constant [W/m2; default=9.653]
-         ACkpo4: 4.99500000E-01                  # half-saturation constant for PO4 uptake [mmol P/m3; default=4.99500000E-01]
+#         ACik: 9.653                             # light half-saturation constant [W/m2; default=9.653]
+#         ACkpo4: 4.99500000E-01                  # half-saturation constant for PO4 uptake [mmol P/m3; default=4.99500000E-01]
+         ACik: 9.7                               # light half-saturation constant [W/m2; default=9.653]
+         ACkpo4: 5.00000000E-01                  # half-saturation constant for PO4 uptake [mmol P/m3; default=4.99500000E-01]
          ACkchl: 0.48                            # attenuation [1/(m*mmol P/m3); default=0.48]
          AClambda: 0.03                          # exudation rate [1/day; default=0.03]
          exutodop: 0.0                           # fraction of exudation that goes into DOP [fraction; default=0.0]
@@ -47,15 +51,19 @@ instances:
          ciz: radiation/ciz                      # PAR at top of the layer [W m-2; default=]
          tau: insolation/stau                    # day length [d; default=]
    zoo:
+# Volkmar: changed values of ACmuzoo and AComniz for comparison with PETSC3.13 version in
+# blogin/scratch/usr/shmvolki/models/TMM-MOPS/sim-single/MIT28/sim-01-02-2024
       model: mops/zooplankton                    # model type
       long_name: zooplankton                     # descriptive name for model instance [default=zoo]
       parameters:
-         ACmuzoo: 1.893                          # max. grazing rate [1/d; default=1.893]
+#         ACmuzoo: 1.893                          # max. grazing rate [1/d; default=1.893]
+         ACmuzoo: 1.890                          # max. grazing rate [1/d; default=1.893]
          ACkphy: 8.59900000E-02                  # half-saturation constant [mmol P/m3; default=8.59914603E-02]
          ACeff: 0.75                             # assimilation efficiency [fraction; default=0.75]
          graztodop: 0.0                          # fraction of grazing that goes into DOP [fraction; default=0.0]
          AClambdaz: 0.03                         # excretion [1/d; default=0.03]
-         AComniz: 4.548                          # density dependent loss rate [m3/(mmol P * day); default=4.548]
+#         AComniz: 4.548                          # density dependent loss rate [m3/(mmol P * day); default=4.548]
+         AComniz: 4.57                           # density dependent loss rate [m3/(mmol P * day); default=4.548]
          zlambda: 0.01                           # mortality [1/d; default=0.01]
       initialization:
          c: 0.001                                # concentration [mmol P/m3; min=0.0; default=0.0]
@@ -96,12 +104,15 @@ instances:
          pho: pho/c                              # phosphate [mmol P/m3; default=]
          dic: carbon/c                           # dissolved inorganic carbon [mmol C/m3; default=]
    det:
+# Volkmar: changed value of detmartin for comparison with PETSC3.13 version in
+# blogin/scratch/usr/shmvolki/models/TMM-MOPS/sim-single/MIT28/sim-01-02-2024
       model: mops/detritus                       # model type
       long_name: detritus                        # descriptive name for model instance [default=det]
       parameters:
          detlambda: 0.05                         # detritus remineralization rate [1/d; default=0.05]
          detwb: 0.0                              # offset for detritus sinking [m/d; default=0.0]
-         detmartin: 0.858                        # exponent for Martin curve [dimensionless; default=0.858]
+#         detmartin: 0.858                        # exponent for Martin curve [dimensionless; default=0.858]
+         detmartin: 1.34                         # exponent for Martin curve [dimensionless; default=0.858]
          burdige_fac: 1.68280000E+00             # factor for sediment burial (see Kriest and Oschlies, 2013) [dimensionless; default=1.68280000E+00]
          burdige_exp: 0.799                      # exponent for sediment burial (see Kriest and Oschlies, 2013) [dimensionless; default=0.799]
    dop:
