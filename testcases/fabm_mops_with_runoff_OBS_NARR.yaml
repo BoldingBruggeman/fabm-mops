@@ -1,0 +1,147 @@
+instances:
+   insolation:
+      model: mops/insolation                     # model type
+   radiation:
+      model: mops/radiation                      # model type
+      parameters:
+         parfrac: 0.4                            # PAR fraction of shortwave radiation [fraction; default=0.4]
+         ACkw: 0.04                              # attenuation of water [1/m; default=0.04]
+      coupling:
+         sfac: insolation/sfac                   # net downwelling shortwave flux at water surface [W m-2; default=]
+   oxy:
+      model: mops/oxygen                         # model type
+      long_name: oxygen                          # descriptive name for model instance [default=oxy]
+      initialization:
+         c: 220.0                                # concentration [mmol O2/m3; default=0.0]
+   carbon:
+      model: mops/carbon                         # model type
+      parameters:
+         ocmip_alkfac: 6.78496000E+01            # alkalinity relative to salinity [meq/m3/PSU; default=6.78496273E+01]
+      initialization:
+         c: 2100.0                               # dissolved inorganic carbon [mmol C/m3; default=0.0]
+      coupling:
+         pho: pho/c                              # phosphate [mmol P m-3; default=]
+         sil: sil/data                           # silicate [mmol Si m-3; default=]
+   phy:
+# Volkmar: changed values of ACik and ACkpo4 for comparison with PETSC3.13 version in
+# blogin/scratch/usr/shmvolki/models/TMM-MOPS/sim-single/MIT28/sim-01-02-2024
+# For the same reason I additionally changed the value of "ro2ut" to 167
+# in branch "comparisonSetup" of "fabm-mops", source "shared.F90"
+      model: mops/phytoplankton                  # model type
+      long_name: phytoplankton                   # descriptive name for model instance [default=phy]
+      parameters:
+         TempB: 15.65                            # reference temperature for T-dependent growth [degrees Celsius; default=15.65]
+         ACmuphy: 0.6                            # max. growth rate [1/day; default=0.6]
+#         ACik: 9.653                             # light half-saturation constant [W/m2; default=9.653]
+#         ACkpo4: 4.99500000E-01                  # half-saturation constant for PO4 uptake [mmol P/m3; default=4.99500000E-01]
+         ACik: 9.7                               # light half-saturation constant [W/m2; default=9.653]
+         ACkpo4: 5.00000000E-01                  # half-saturation constant for PO4 uptake [mmol P/m3; default=4.99500000E-01]
+         ACkchl: 0.48                            # attenuation [1/(m*mmol P/m3); default=0.48]
+         AClambda: 0.03                          # exudation rate [1/day; default=0.03]
+         exutodop: 0.0                           # fraction of exudation that goes into DOP [fraction; default=0.0]
+         AComni: 0.0                             # density dependent loss rate [m3/(mmol P * day); default=0.0]
+         plambda: 0.01                           # mortality [1/d; default=0.01]
+      initialization:
+         c: 0.001                                # concentration [mmol P/m3; min=0.0; default=0.0]
+      coupling:
+         dop: dop/c                              # dissolved organic phosphorus [mmol P/m3; default=]
+         det: det/c                              # detritus [mmol P/m3; default=]
+         oxy: oxy/c                              # oxygen [mmol O2/m3; default=]
+         din: din/c                              # dissolved inorganic nitrogen [mmol N/m3; default=]
+         pho: pho/c                              # phosphate [mmol P/m3; default=]
+         dic: carbon/c                           # dissolved inorganic carbon [mmol C/m3; default=]
+         ciz: radiation/ciz                      # PAR at top of the layer [W m-2; default=]
+         tau: insolation/stau                    # day length [d; default=]
+   zoo:
+# Volkmar: changed values of ACmuzoo and AComniz for comparison with PETSC3.13 version in
+# blogin/scratch/usr/shmvolki/models/TMM-MOPS/sim-single/MIT28/sim-01-02-2024
+      model: mops/zooplankton                    # model type
+      long_name: zooplankton                     # descriptive name for model instance [default=zoo]
+      parameters:
+#         ACmuzoo: 1.893                          # max. grazing rate [1/d; default=1.893]
+         ACmuzoo: 1.890                          # max. grazing rate [1/d; default=1.893]
+         ACkphy: 8.59900000E-02                  # half-saturation constant [mmol P/m3; default=8.59914603E-02]
+         ACeff: 0.75                             # assimilation efficiency [fraction; default=0.75]
+         graztodop: 0.0                          # fraction of grazing that goes into DOP [fraction; default=0.0]
+         AClambdaz: 0.03                         # excretion [1/d; default=0.03]
+#         AComniz: 4.548                          # density dependent loss rate [m3/(mmol P * day); default=4.548]
+         AComniz: 4.57                           # density dependent loss rate [m3/(mmol P * day); default=4.548]
+         zlambda: 0.01                           # mortality [1/d; default=0.01]
+      initialization:
+         c: 0.001                                # concentration [mmol P/m3; min=0.0; default=0.0]
+      coupling:
+         phy: phy/c                              # phytoplankton [mmol P/m3; default=]
+         dop: dop/c                              # dissolved organic phosphorus [mmol P/m3; default=]
+         det: det/c                              # detritus [mmol P/m3; default=]
+         oxy: oxy/c                              # oxygen [mmol O2/m3; default=]
+         din: din/c                              # dissolved inorganic nitrogen [mmol N/m3; default=]
+         pho: pho/c                              # phosphate [mmol P/m3; default=]
+         dic: carbon/c                           # dissolved inorganic carbon [mmol C/m3; default=]
+   nitrogen_fixation:
+      model: mops/nitrogen_fixation              # model type
+      long_name: nitrogen fixation               # descriptive name for model instance [default=nitrogen_fixation]
+      parameters:
+         tf2: -4.20000000E-03                    # quadratic coefficient for temperature dependence [1/(d degC^2); default=-4.20000000E-03]
+         tf1: 2.25300000E-01                     # linear coefficient for temperature dependence [1/(d degC); default=2.25300000E-01]
+         tf0: -2.78190000E+00                    # constant coefficient for temperature dependence [1/d; default=-2.78190000E+00]
+         tff: 2.39500000E-01                     # normalization factor for temperature dependence [1/d; default=2.39500000E-01]
+         nfix: 2.27207304E-03                    # max. rate [mmol N/m3/d; default=2.27207304E-03]
+      coupling:
+         din: din/c                              # dissolved inorganic nitrogen [mmol N/m3; default=]
+         pho: pho/c                              # phosphate [mmol P/m3; default=]
+   remineralization:
+      model: mops/remineralization               # model type
+      parameters:
+         dlambda: 5.13333305E-04                 # DOP remineralization rate [1/d; default=5.13333305E-04]
+         detlambda: 0.05                         # detritus remineralization rate [1/d; default=0.05]
+         subox: 1.0                              # minimum oxygen for oxic degradation [mmol/m3; default=1.0]
+         subdin: 16.0                            # minimum DIN for denitrification [mmol/m3; default=16.0]
+         ACkbaco2: 1.14553200E+00                # Half sat.-constant for oxic degradation (see Kriest and Oschlies, 2015) [mmol/m3; default=1.14553200E+00]
+         ACkbacdin: 2.30835590E+01               # Half sat.-constant for suboxic degradation (see Kriest and Oschlies, 2015) [mmol/m3; default=2.30835590E+01]
+      coupling:
+         dop: dop/c                              # dissolved organic phosphorus [mmol P/m3; default=]
+         det: det/c                              # detritus [mmol P/m3; default=]
+         oxy: oxy/c                              # oxygen [mmol O2/m3; default=]
+         din: din/c                              # dissolved inorganic nitrogen [mmol N/m3; default=]
+         pho: pho/c                              # phosphate [mmol P/m3; default=]
+         dic: carbon/c                           # dissolved inorganic carbon [mmol C/m3; default=]
+   det:
+# Volkmar: changed value of detmartin for comparison with PETSC3.13 version in
+# blogin/scratch/usr/shmvolki/models/TMM-MOPS/sim-single/MIT28/sim-01-02-2024
+      model: mops/detritus                       # model type
+      long_name: detritus                        # descriptive name for model instance [default=det]
+      parameters:
+         detlambda: 0.05                         # detritus remineralization rate [1/d; default=0.05]
+         detwb: 0.0                              # offset for detritus sinking [m/d; default=0.0]
+#         detmartin: 0.858                        # exponent for Martin curve [dimensionless; default=0.858]
+         detmartin: 1.34                         # exponent for Martin curve [dimensionless; default=0.858]
+         burdige_fac: 1.68280000E+00             # factor for sediment burial (see Kriest and Oschlies, 2013) [dimensionless; default=1.68280000E+00]
+         burdige_exp: 0.799                      # exponent for sediment burial (see Kriest and Oschlies, 2013) [dimensionless; default=0.799]
+   dop:
+      model: mops/tracer                         # model type
+      long_name: dissolved organic phosphorus    # descriptive name for model instance [default=dop]
+   din:
+      model: bb/passive                          # model type
+      long_name: dissolved inorganic nitrogen    # descriptive name for model instance [default=din]
+      parameters:
+         units: mmol N/m3                        #  [default=mol m-3]
+      initialization:
+         c: 10.0                                 # concentration [mmol N/m3; min=0.0; default=1.0]
+   pho:
+      model: mops/tracer                         # model type
+      long_name: phosphate                       # descriptive name for model instance [default=pho]
+      initialization:
+         c: 1.0                                  # concentration [mmol P/m3; default=0.0]
+   sil:
+      model: interior_constant                   # model type
+      parameters:
+         standard_name:                          # standard name [default=]
+         value: 7.7                              # value
+   runoff:
+      model: mops/runoff                         # model type
+      parameters:
+         whole_column: true
+      coupling:
+         din: din/c                              # dissolved inorganic nitrogen [mmol N/m3; default=]
+         pho: pho/c                              # phosphate [mmol P/m3; default=]
+         dic: carbon/c                           # dissolved inorganic carbon [mmol C/m3; default=]
