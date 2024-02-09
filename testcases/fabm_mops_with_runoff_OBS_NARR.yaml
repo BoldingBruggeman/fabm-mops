@@ -25,8 +25,8 @@ instances:
    phy:
 # Volkmar: changed values of ACik and ACkpo4 for comparison with PETSC3.13 version in
 # blogin/scratch/usr/shmvolki/models/TMM-MOPS/sim-single/MIT28/sim-01-02-2024
-# For the same reason I additionally changed the value of "ro2ut" to 167
-# in branch "comparisonSetup" of "fabm-mops", source "shared.F90"
+# For the same reason I additionally changed the value of "ro2ut" to 167 in "shared.F90"
+# Could I treat it here as a parameter, too?
       model: mops/phytoplankton                  # model type
       long_name: phytoplankton                   # descriptive name for model instance [default=phy]
       parameters:
