@@ -21,6 +21,10 @@ module mops_carbon
       ! Model procedures
       procedure :: initialize
       procedure :: do_surface
+      ! Volkmar: from MOPS3.1 (modelling effect of CaCO3 on DIC and Alk)
+      ! I will calculate diagnostic variables "intdet"
+      ! and "caco3div" in module detritus
+      procedure :: do
    end type type_mops_carbon
 
 contains
@@ -46,6 +50,10 @@ contains
       call self%register_dependency(self%id_bgc_atmosp, standard_variables%surface_air_pressure)
       call self%register_dependency(self%id_pco2atm, standard_variables%mole_fraction_of_carbon_dioxide_in_air)
       call self%register_dependency(self%id_surf_ph_in, 'surf_ph', '-', 'previous surface pH')
+      ! Volkmar: e-fold function for calculating the CaCO3 box divergence
+      !          depends on the depths of its upper and lower boundary
+      call self%register_dependency(self%id_bgc_z, standard_variables%depth)
+      call self%register_dependency(self%id_bgc_z_bot, standard_variables%bottom_depth)
 
       self%dt = 86400.0_rk
    end subroutine

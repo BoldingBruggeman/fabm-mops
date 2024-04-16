@@ -11,8 +11,10 @@ module mops_detritus
 
    type, extends(type_base_model), public :: type_mops_detritus
       type (type_dependency_id) :: id_bgc_z
+      type (type_dependency_id) :: id_bgc_dz ! for CaCO3 divergence
       type (type_bottom_dependency_id) :: id_bgc_z_bot
       type (type_state_variable_id) :: id_det
+      type (type_diagnostic_variable_id) :: id_caco3div ! CaCO3 divergence
       type (type_bottom_diagnostic_variable_id) :: id_burial
 
       real(rk) :: detlambda, detwb, detmartin
@@ -21,6 +23,8 @@ module mops_detritus
       ! Model procedures
       procedure :: initialize
       procedure :: get_vertical_movement
+      ! Volkmar: to calculate CaCO3 divergence
+      procedure :: do_column
       procedure :: do_bottom
    end type type_mops_detritus
 
@@ -35,15 +39,24 @@ contains
       call self%get_parameter(self%detmartin, 'detmartin', '-','exponent for Martin curve', default=0.8580_rk)
       call self%get_parameter(self%burdige_fac, 'burdige_fac', '-','factor for sediment burial (see Kriest and Oschlies, 2013)', default=1.6828_rk)
       call self%get_parameter(self%burdige_exp, 'burdige_exp', '-','exponent for sediment burial (see Kriest and Oschlies, 2013)', default=0.799_rk)
+      ! Volkmar: Parameter l_caco3
+      call self%get_parameter(self%length_caco3, 'length_caco3', 'm','lenght scale for the e-fold function of dissolving CaCO3', default=4289.4_rk)
 
       call self%register_state_variable(self%id_det, 'c', 'mmol P/m3', 'detritus', minimum=0.0_rk)
       call self%add_to_aggregate_variable(standard_variables%total_phosphorus, self%id_det)
 
       call self%register_diagnostic_variable(self%id_burial, 'burial', 'mmol P/m2/d', 'burial')
+      ! Volkmar: diagnostic variable caco3div
+      call self%register_diagnostic_variable(self%id_caco3div, 'caco3div', 'mmol C/m3/d', 'divergence of CaCO3', minimum=0.0_rk)
 
       ! Register environmental dependencies
       call self%register_dependency(self%id_bgc_z, standard_variables%depth)
+      ! Volkmar: id_bgc_dz is for diagnostic CaCO3 divergence caco3div in subroutine do_column
+      call self%register_dependency(self%id_bgc_dz, standard_variables%cell_thikness)
       call self%register_dependency(self%id_bgc_z_bot, standard_variables%bottom_depth)
+
+      ! Volkmar: to use depth integrated detritus intdet (mmol P/m2) in subroutine do_column
+      call self%register_expression_dependency(self%id_intdet,vertical_integral(self%id_det))
 
       self%dt = 86400.0_rk
    end subroutine
@@ -62,6 +75,15 @@ contains
       _LOOP_END_
    end subroutine get_vertical_movement
 
+   subroutine do_column(self, _ARGUMENTS_DO_)
+      class (type_mops_detritus), intent(in) :: self
+      _DECLARE_ARGUMENTS_DO_
+      
+      real(rk) :: fcaco3
+      ! calculate CaCO3 divergence acc. to MOPS3.1 code
+      
+   end subroutine
+
    subroutine do_bottom(self, _ARGUMENTS_DO_BOTTOM_)
       class (type_mops_detritus), intent(in) :: self
       _DECLARE_ARGUMENTS_DO_BOTTOM_
@@ -78,7 +100,6 @@ contains
          _ADD_BOTTOM_FLUX_(self%id_det, -flux_l)
          _SET_BOTTOM_DIAGNOSTIC_(self%id_burial, flux_l)
       _BOTTOM_LOOP_END_
-
    end subroutine
 
 end module mops_detritus
