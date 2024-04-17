@@ -5,7 +5,7 @@ module mops_shared
    real(rk), parameter :: rnp = 16.0_rk        !redfield ratio N:P
    real(rk), parameter :: ro2ut = 167.0_rk !redfield -O2:P ratio
 !   real(rk), parameter :: ro2ut = 151.13958_rk !redfield -O2:P ratio
-! Volkmar: changed value of ro2ut for comparison with PETSC3.13 version in
+! VS changed value of ro2ut for comparison with PETSC3.13 version in
 ! blogin/scratch/usr/shmvolki/models/TMM-MOPS/sim-single/MIT28/sim-01-02-2024
 ! (experiment OBS_NARR, Kriest et al., 2017)
 ! can I rather set this value in my "*.yaml" file, too ...?
@@ -15,5 +15,8 @@ module mops_shared
    real(rk), parameter :: rho0=1024.5_rk
    real(rk), parameter :: permil=1.0_rk/rho0
    real(rk), parameter :: permeg=1.0e-6_rk
-   real(rk), parameter :: alimit = 1.0d-3   
+   real(rk), parameter :: alimit = 1.0d-3
+   ! VS an aggregate variable for the total detritus production by plankton
+   ! is to be used to calculate implicit CaCO3 divergences and their effect on DIC and Alk
+   type (type_interior_standard_variable), parameter :: detritus_production_by_plankton = type_interior_standard_variable(name='detritus_production_by_plankton',units='mmol P/m3/d',aggregate_variable=.true.) 
 end module

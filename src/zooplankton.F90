@@ -11,7 +11,8 @@ module mops_zooplankton
 
    type, extends(type_base_model), public :: type_mops_zooplankton
       type (type_state_variable_id) :: id_c, id_phy, id_po4, id_din, id_oxy, id_det, id_dop, id_dic
-      type (type_diagnostic_variable_id) :: id_f2
+      ! Volkmar: introducing id_det_prod_zoo (see below)
+      type (type_diagnostic_variable_id) :: id_f2, id_det_prod_zoo
 
       real(rk) :: ACmuzoo, ACkphy, AClambdaz, AComniz, ACeff, graztodop, zlambda
    contains
@@ -37,6 +38,8 @@ contains
       call self%register_state_variable(self%id_c, 'c', 'mmol P/m3', 'concentration', minimum=0.0_rk)
 
       call self%register_diagnostic_variable(self%id_f2, 'f2', 'mmol P/m3/d', 'grazing')
+      ! Volkmar: introducing detritus production by zooplankton as diagnostic variable
+      call self%register_diagnostic_variable(self%id_det_prod_zoo, 'det_prod_zoo', 'mmol P/m3/d', 'detritus produced by zooplankton')
 
       call self%register_state_dependency(self%id_phy, 'phy', 'mmol P/m3', 'phytoplankton')
       call self%register_state_dependency(self%id_dop, 'dop', 'mmol P/m3', 'dissolved organic phosphorus')
@@ -48,6 +51,8 @@ contains
 
       ! Register environmental dependencies
       call self%add_to_aggregate_variable(standard_variables%total_phosphorus, self%id_c)
+      ! Volkmar: zooplankton (like phytoplankton) detritus production contributes to total detritus production by plankton
+      call self%add_to_aggregate_variable(detritus_production_by_plankton, self%id_det_prod_zoo)
 
       self%dt = 86400.0_rk
    end subroutine
@@ -95,6 +100,8 @@ contains
        endif !ZOO
 
        _SET_DIAGNOSTIC_(self%id_f2, graz)
+! VS detritus production by zootoplankton
+       _SET_DIAGNOSTIC_(self%id_det_prod_zoo, (1.0_rk-self%graztodop)*(1.0_rk-self%ACeff)*graz + (1.0_rk-self%graztodop)*zooloss)
 
 ! Collect all euphotic zone fluxes in these arrays.
         _ADD_SOURCE_(self%id_c, self%ACeff*graz-zooexu-zooloss)

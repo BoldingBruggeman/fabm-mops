@@ -10,8 +10,8 @@ module mops_carbon
    private
 
    type, extends(type_base_model), public :: type_mops_carbon
-      type (type_state_variable_id) :: id_dic
-      type (type_dependency_id) :: id_pho, id_sil, id_bgc_salt, id_bgc_theta
+      type (type_state_variable_id) :: id_dic, id_alk
+      type (type_dependency_id) :: id_pho, id_sil, id_bgc_salt, id_bgc_theta!, id_det_prod_phy, id_det_prod_zoo, id_fdiv_caco3
       type (type_surface_dependency_id) :: id_bgc_wind, id_bgc_seaice, id_bgc_atmosp, id_pco2atm, id_surf_ph_in
       type (type_surface_diagnostic_variable_id) :: id_surf_ph, id_gasex
 
@@ -21,10 +21,7 @@ module mops_carbon
       ! Model procedures
       procedure :: initialize
       procedure :: do_surface
-      ! Volkmar: from MOPS3.1 (modelling effect of CaCO3 on DIC and Alk)
-      ! I will calculate diagnostic variables "intdet"
-      ! and "caco3div" in module detritus
-      procedure :: do
+      !procedure :: do
    end type type_mops_carbon
 
 contains
@@ -34,6 +31,8 @@ contains
       integer,                  intent(in)            :: configunit
 
       call self%register_state_variable(self%id_dic, 'c', 'mmol C/m3', 'dissolved inorganic carbon')
+      ! VS adding alkalinity
+      !call self%register_state_variable(self%id_alk, 'c', 'mmol C/m3', 'alkalinity')
 
       call self%get_parameter(self%ocmip_alkfac, 'ocmip_alkfac', 'meq/m3/PSU', 'alkalinity relative to salinity', default=2310.0_rk*1.0245_rk/34.88_rk)
 
@@ -43,6 +42,9 @@ contains
       ! Register environmental dependencies
       call self%register_dependency(self%id_pho, 'pho', 'mmol P m-3', 'phosphate')
       call self%register_dependency(self%id_sil, 'sil', 'mmol Si m-3', 'silicate')
+      call self%register_dependency(self%id_det_prod_phy, 'det_prod_phy', 'mmol P/m3/d', 'detritus produced by phytoplankton')
+      call self%register_dependency(self%id_det_prod_zoo, 'det_prod_zoo', 'mmol P/m3/d', 'detritus produced by zooplankton')
+      call self%register_dependency(self%id_fdiv_caco3, 'fdiv_caco3', 'mmol CaCO3/m3/d', 'divergence of produced CaCO3')
       call self%register_dependency(self%id_bgc_salt, standard_variables%practical_salinity)
       call self%register_dependency(self%id_bgc_theta, standard_variables%temperature)
       call self%register_dependency(self%id_bgc_wind, standard_variables%wind_speed)
@@ -50,10 +52,6 @@ contains
       call self%register_dependency(self%id_bgc_atmosp, standard_variables%surface_air_pressure)
       call self%register_dependency(self%id_pco2atm, standard_variables%mole_fraction_of_carbon_dioxide_in_air)
       call self%register_dependency(self%id_surf_ph_in, 'surf_ph', '-', 'previous surface pH')
-      ! Volkmar: e-fold function for calculating the CaCO3 box divergence
-      !          depends on the depths of its upper and lower boundary
-      call self%register_dependency(self%id_bgc_z, standard_variables%depth)
-      call self%register_dependency(self%id_bgc_z_bot, standard_variables%bottom_depth)
 
       self%dt = 86400.0_rk
    end subroutine
@@ -96,6 +94,10 @@ contains
       _SURFACE_LOOP_END_
    end subroutine do_surface
 
+!   subroutine do(self, _ARGUMENTS_DO_)
+!      class (type_mops_carbon), intent(in) :: self
+!      _DECLARE_ARGUMENTS_DO_
+!   end subroutine do
 
    elemental subroutine car_coeffs(t,s,bt,st,ft,ff,ak0,ak1,ak2,ak1p,ak2p,ak3p,aksi,akw,aks,akf,akb)
       real(rk), intent(in) :: t,s
