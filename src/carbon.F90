@@ -42,9 +42,9 @@ contains
       ! Register environmental dependencies
       call self%register_dependency(self%id_pho, 'pho', 'mmol P m-3', 'phosphate')
       call self%register_dependency(self%id_sil, 'sil', 'mmol Si m-3', 'silicate')
-      call self%register_dependency(self%id_det_prod_phy, 'det_prod_phy', 'mmol P/m3/d', 'detritus produced by phytoplankton')
-      call self%register_dependency(self%id_det_prod_zoo, 'det_prod_zoo', 'mmol P/m3/d', 'detritus produced by zooplankton')
-      call self%register_dependency(self%id_fdiv_caco3, 'fdiv_caco3', 'mmol CaCO3/m3/d', 'divergence of produced CaCO3')
+      !call self%register_dependency(self%id_det_prod_phy, 'det_prod_phy', 'mmol P/m3/d', 'detritus produced by phytoplankton')
+      !call self%register_dependency(self%id_det_prod_zoo, 'det_prod_zoo', 'mmol P/m3/d', 'detritus produced by zooplankton')
+      !call self%register_dependency(self%id_fdiv_caco3, 'fdiv_caco3', 'mmol CaCO3/m3/d', 'divergence of produced CaCO3')
       call self%register_dependency(self%id_bgc_salt, standard_variables%practical_salinity)
       call self%register_dependency(self%id_bgc_theta, standard_variables%temperature)
       call self%register_dependency(self%id_bgc_wind, standard_variables%wind_speed)

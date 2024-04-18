@@ -1,5 +1,5 @@
 module mops_shared
-   use fabm_types, only: rk
+   use fabm_types, only: rk, type_interior_standard_variable
    real(rk), parameter :: vsafe = 1.0e-6_rk
    real(rk), parameter :: rcp = 117.0_rk       !redfield ratio C:P
    real(rk), parameter :: rnp = 16.0_rk        !redfield ratio N:P
@@ -16,6 +16,8 @@ module mops_shared
    real(rk), parameter :: permil=1.0_rk/rho0
    real(rk), parameter :: permeg=1.0e-6_rk
    real(rk), parameter :: alimit = 1.0d-3
+   real(rk), parameter :: length_caco3 = 4289.4_rk ! VS length scale for e-folding function for implicit CaCO3 divergences
+   real(rk), parameter :: frac_caco3 = 0.32_rk ! VS fraction of CaCO3 in detritus produced by plankton
    ! VS an aggregate variable for the total detritus production by plankton
    ! is to be used to calculate implicit CaCO3 divergences and their effect on DIC and Alk
    type (type_interior_standard_variable), parameter :: detritus_production_by_plankton = type_interior_standard_variable(name='detritus_production_by_plankton',units='mmol P/m3/d',aggregate_variable=.true.) 
