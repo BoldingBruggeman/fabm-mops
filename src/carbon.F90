@@ -11,7 +11,7 @@ module mops_carbon
 
    type, extends(type_base_model), public :: type_mops_carbon
       type (type_state_variable_id) :: id_dic, id_alk
-      type (type_dependency_id) :: id_pho, id_sil, id_bgc_salt, id_bgc_theta, id_det_prod, id_fdiv_caco3 ! VS the latter two needed in do
+      type (type_dependency_id) :: id_pho, id_sil, id_bgc_salt, id_bgc_theta
       type (type_surface_dependency_id) :: id_bgc_wind, id_bgc_seaice, id_bgc_atmosp, id_pco2atm, id_surf_ph_in
       type (type_surface_diagnostic_variable_id) :: id_surf_ph, id_gasex
 
@@ -54,12 +54,6 @@ contains
       call self%register_dependency(self%id_bgc_atmosp, standard_variables%surface_air_pressure)
       call self%register_dependency(self%id_pco2atm, standard_variables%mole_fraction_of_carbon_dioxide_in_air)
       call self%register_dependency(self%id_surf_ph_in, 'surf_ph', '-', 'previous surface pH')
-      ! VS need this one in do
-      call self%register_dependency(self%id_det_prod, detritus_production_by_plankton)
-      call self%register_dependency(self%id_fdiv_caco3, caco3_implicit_divergence)
-      ! VS consider DIC and Alk, now
-      call self%register_state_variable(self%id_dic, 'dic', 'mmol C/m3', 'dissolved inorganic carbon', minimum=0.0_rk)
-      call self%register_state_variable(self%id_alk, 'alk', 'mmol Alk/m3', 'alkalinity', minimum=0.0_rk)
 
       self%dt = 86400.0_rk
    end subroutine
@@ -101,21 +95,6 @@ contains
          _SET_SURFACE_DIAGNOSTIC_(self%id_surf_ph, surf_ph)
       _SURFACE_LOOP_END_
    end subroutine do_surface
-
-   subroutine do(self, _ARGUMENTS_DO_)
-      class (type_mops_carbon), intent(in) :: self
-      _DECLARE_ARGUMENTS_DO_
-
-      real(rk) :: det_prod, caco3_prod, fdiv_caco3
-      _LOOP_BEGIN_
-         _GET_(self%id_det_prod, det_prod) ! detritus produced by plankton
-         _GET_(self%id_fdiv_caco3, fdiv_caco3) ! implicite CaCO divergence
-         caco3_prod = rcp * self%frac_caco3 * det_prod ! CaCO3 portion of detritus produced by plankton
-         ! effects of CaCO3 processes on DIC and Alk:
-         _ADD_SOURCE_(self%id_dic, fdiv_caco3-caco3_prod)
-         _ADD_SOURCE_(self%id_alk, -2._rk*(fdiv_caco3-caco3_prod))
-      _LOOP_END_
-   end subroutine do
 
    elemental subroutine car_coeffs(t,s,bt,st,ft,ff,ak0,ak1,ak2,ak1p,ak2p,ak3p,aksi,akw,aks,akf,akb)
       real(rk), intent(in) :: t,s

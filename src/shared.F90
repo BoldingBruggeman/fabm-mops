@@ -21,6 +21,4 @@ module mops_shared
    ! VS an aggregate variable for the total detritus production by plankton
    ! is to be used to calculate implicit CaCO3 divergences fdiv_caco3 and their effect on DIC and Alk
    type (type_interior_standard_variable), parameter :: detritus_production_by_plankton = type_interior_standard_variable(name='detritus_production_by_plankton',units='mmol P/m3/d',aggregate_variable=.true.) 
-   ! VS defining implicit CaCO3 divergence as another interior standard variable?
-   type (type_interior_standard_variable), parameter :: caco3_implicit_divergence = type_interior_standard_variable(name='caco3_implicit_divergence',units='mmol CaCO3/m3/d',aggregate_variable=.true.) 
 end module
