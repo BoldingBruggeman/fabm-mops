@@ -55,10 +55,8 @@ contains
       call self%register_dependency(self%id_pco2atm, standard_variables%mole_fraction_of_carbon_dioxide_in_air)
       call self%register_dependency(self%id_surf_ph_in, 'surf_ph', '-', 'previous surface pH')
       ! VS need this one in do
-      call self%register_dependency(self%id_det_prod, 'det_prod', 'mmol P/m3/d', 'detritus production by plankton')
-      call self%request_coupling(self%id_det_prod, 'detritus_production_by_plankton')
-      call self%register_dependency(self%id_fdiv_caco3, 'fdiv_caco3', 'mmol CaCO3/m3/d', 'CaCO3 implicit divergence')
-      call self%request_coupling(self%id_fdiv_caco3, 'caco3_implicit_divergence')
+      call self%register_dependency(self%id_det_prod, detritus_production_by_plankton)
+      call self%register_dependency(self%id_fdiv_caco3, caco3_implicit_divergence)
       ! VS consider DIC and Alk, now
       call self%register_state_variable(self%id_dic, 'dic', 'mmol C/m3', 'dissolved inorganic carbon', minimum=0.0_rk)
       call self%register_state_variable(self%id_alk, 'alk', 'mmol Alk/m3', 'alkalinity', minimum=0.0_rk)
