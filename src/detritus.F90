@@ -17,7 +17,7 @@ module mops_detritus
       type (type_dependency_id) :: id_det_prod ! VS for CaCO3 divergence
       type (type_horizontal_dependency_id) :: id_int_det_prod ! VS for CaCO3 divergence
       type (type_bottom_dependency_id) :: id_bgc_z_bot
-      type (type_state_variable_id) :: id_det
+      type (type_state_variable_id) :: id_det, id_dic, id_alk
       type (type_diagnostic_variable_id) :: id_fdiv_caco3 ! VS CaCO3 divergence
       type (type_bottom_diagnostic_variable_id) :: id_burial
       ! VS I am planning to use change rates id_det_prod
@@ -64,14 +64,14 @@ contains
       ! VS stuff needed for CaCO3 flux divergence in subroutine do_column
       call self%register_dependency(self%id_bgc_z, standard_variables%depth)
       call self%register_dependency(self%id_bgc_dz, standard_variables%cell_thickness)
-      call self%register_dependency(self%id_det_prod, 'det_prod', 'mmol P/m3/d', 'detritus production by plankton')
-      call self%request_coupling(self%id_det_prod, 'detritus_production_by_plankton')
-      ! VS need depth integrated detritus production by plankton (mmol P/m2/d) in subroutine do_column
-      !    however, the following (in conjuction with former commands) seems to be an abuse of concepts?
+!      call self%register_dependency(self%id_det_prod, 'det_prod', 'mmol P/m3/d', 'detritus production by plankton')
+!      call self%request_coupling(self%id_det_prod, 'detritus_production_by_plankton')
+      call self%register_dependency(self%id_det_prod, detritus_production_by_plankton)
       call self%register_expression_dependency(self%id_int_det_prod,vertical_integral(self%id_det_prod))
+      ! VS misuse of an aggregate_variable to access implicit caco3 divergence within carbon.F90 do?
+      call self%add_to_aggregate_variable(caco3_implicit_divergence, self%id_fdiv_caco3)
 
       call self%register_dependency(self%id_bgc_z_bot, standard_variables%bottom_depth)
-
 
       self%dt = 86400.0_rk
    end subroutine
@@ -96,16 +96,16 @@ contains
 
       real(rk) :: z, dz, att_z, att_dz
       real(rk) :: int_det_prod ! total produced detritus C in water column (mol C/m2/d)
-      real(rk) :: caco3_prod ! total produced CaCO3 in water column (mol CaCO3/m2/d)
+      real(rk) :: int_caco3_prod ! total produced CaCO3 in water column (mol CaCO3/m2/d)
       ! calculate CaCO3 divergence acc. to MOPS3.1 code (using "_GET_" for "space variate stuff"?)
       _GET_HORIZONTAL_(self%id_int_det_prod, int_det_prod) ! seems to be forbidden, here
-      caco3_prod = rcp * self%frac_caco3 * int_det_prod
+      int_caco3_prod = rcp * self%frac_caco3 * int_det_prod
       _DOWNWARD_LOOP_BEGIN_
          _GET_(self%id_bgc_z, z)
          _GET_(self%id_bgc_dz, dz)
          att_z = exp( z / self%length_caco3 ) ! "attenuation" (of water columns produced CaCO3) at depth z
          att_dz = exp( dz / self%length_caco3 ) ! "attenuation" caused by a cell thickness dz
-         _SET_DIAGNOSTIC_( self%id_fdiv_caco3, caco3_prod * ( att_dz - 1._rk ) / sqrt( att_dz ) / att_z / dz )
+         _SET_DIAGNOSTIC_( self%id_fdiv_caco3, int_caco3_prod * ( att_dz - 1._rk ) / sqrt( att_dz ) / att_z / dz )
          ! VS Original MOPS3.1 code uses flux fractions fcaco3(k) of CaCO3 calculated as
          !    fcaco3(k) = exp( -zu(k)/length_caco3 ), with upper boundary depth zu(k) = z(k)-dz(k)/2.
          !    Since zu(k+1) is the same as the lower boundary depth z(k)+dz(k)/2 of layer k,
@@ -115,12 +115,15 @@ contains
          !                          = exp(-z/L) * (sqrt(exp(dz/L))-1/sqrt(exp(dz/L)))
          !                          = exp(-z/L) * (exp(dz/L)-1)/sqrt(exp(dz/L))
          !                          = 1 / att_z * ( att_dz - 1 ) / sqrt( att_dz )
-         !    Now, fdiv_caco3 = caco3_prod * (fcaco3(k)-fcaco3(k+1)) / dz(k),
-         !                    = caco3_prod * ( att_dz - 1 ) / sqrt( att_dz ) / att_z / dz
+         !    Now, fdiv_caco3 = int_caco3_prod * (fcaco3(k)-fcaco3(k+1)) / dz(k),
+         !                    = int_caco3_prod * ( att_dz - 1 ) / sqrt( att_dz ) / att_z / dz
          !    Need to check calculations once the code is compiling
       _DOWNWARD_LOOP_END_
    end subroutine do_column
 
+   ! VS shall I deal with another bottom diagnosic variable, say "avoided_caco3_flux"
+   !    ( avoided_caco3_flux = int_caco3_prod * sqrt( att_dz ) / att_z / dz )
+   !    and add it to aggregate variable "caco3_implicit_divergence" in line 73?
    subroutine do_bottom(self, _ARGUMENTS_DO_BOTTOM_)
       class (type_mops_detritus), intent(in) :: self
       _DECLARE_ARGUMENTS_DO_BOTTOM_
