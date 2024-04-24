@@ -18,7 +18,8 @@ module mops_detritus
       type (type_horizontal_dependency_id) :: id_int_det_prod ! VS for CaCO3 divergence
       type (type_bottom_dependency_id) :: id_bgc_z_bot
       type (type_state_variable_id) :: id_det, id_dic, id_alk
-      type (type_diagnostic_variable_id) :: id_fdiv_caco3 ! VS CaCO3 divergence
+      type (type_diagnostic_variable_id) :: id_f8 ! VS CaCO3 production
+      type (type_diagnostic_variable_id) :: id_fdiv_caco3 ! (f9) VS CaCO3 divergence
       type (type_dependency_id) :: id_fdiv_caco3_in ! an immediate dependency of the former
       type (type_bottom_diagnostic_variable_id) :: id_burial
       ! VS I am planning to use change rates id_det_prod
@@ -58,7 +59,9 @@ contains
       call self%add_to_aggregate_variable(standard_variables%total_phosphorus, self%id_det)
 
       call self%register_diagnostic_variable(self%id_burial, 'burial', 'mmol P/m2/d', 'burial')
-      ! VS diagnostic variable fdiv_caco3
+      ! VS diagnostic variable f8
+      call self%register_diagnostic_variable(self%id_f8, 'f8', 'mmol CaCO3/m3/d', 'production of CaCO3')
+      ! VS diagnostic variable fdiv_caco3 (f9)
       call self%register_diagnostic_variable(self%id_fdiv_caco3, 'fdiv_caco3', 'mmol CaCO3/m3/d', 'divergence of CaCO3')
 
       ! Register environmental dependencies
