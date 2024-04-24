@@ -75,7 +75,6 @@ contains
 
       call self%register_dependency(self%id_bgc_z_bot, standard_variables%bottom_depth)
 
-      call self%register_state_variable(self%id_dic, 'dic', 'mmol C/m3', 'dissolved inorganic carbon', minimum=0.0_rk)
       call self%register_state_variable(self%id_alk, 'alk', 'mmol Alk/m3', 'alkalinity', minimum=0.0_rk)
 
       self%dt = 86400.0_rk
