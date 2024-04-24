@@ -32,8 +32,6 @@ contains
       integer,                  intent(in)            :: configunit
 
       call self%register_state_variable(self%id_dic, 'c', 'mmol C/m3', 'dissolved inorganic carbon')
-      ! VS adding alkalinity
-      call self%register_state_variable(self%id_alk, 'c', 'mmol C/m3', 'alkalinity')
 
       call self%get_parameter(self%ocmip_alkfac, 'ocmip_alkfac', 'meq/m3/PSU', 'alkalinity relative to salinity', default=2310.0_rk*1.0245_rk/34.88_rk)
       ! VS Parameter $\sigma_\mathrm{CaCO3}$ in Chien et al., 2022

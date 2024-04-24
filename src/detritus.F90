@@ -144,7 +144,7 @@ contains
          caco3_prod = rcp * self%frac_caco3 * det_prod ! CaCO3 portion of detritus produced by plankton
          ! effects of CaCO3 processes on DIC and Alk:
          _ADD_SOURCE_(self%id_dic, fdiv_caco3-caco3_prod)
-         _ADD_SOURCE_(self%id_alk, -2._rk*(fdiv_caco3-caco3_prod))
+         _ADD_SOURCE_(self%id_alk, 2._rk*(fdiv_caco3-caco3_prod))
       _LOOP_END_
    end subroutine do
 
