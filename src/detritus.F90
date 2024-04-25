@@ -31,11 +31,13 @@ module mops_detritus
       real(rk) :: detlambda, detwb, detmartin
       real(rk) :: burdige_fac, burdige_exp
       real(rk) :: frac_caco3, length_caco3 ! VS parameters for CaCO3 divergence
+      integer :: file_unit, ierr ! VS only for short
    contains
       ! Model procedures
       procedure :: initialize
       procedure :: get_vertical_movement
       procedure :: do_column ! VS to calculate CaCO3 divergence
+      procedure :: do
       procedure :: do_bottom
    end type type_mops_detritus
 
@@ -77,8 +79,15 @@ contains
 
       call self%register_dependency(self%id_bgc_z_bot, standard_variables%bottom_depth)
 
-
       self%dt = 86400.0_rk
+
+      ! VS only for short, open detritus.log for writing:
+      open(unit=self%file_unit, file="detritus.log", status='replace', action='write', iostat=self%ierr)
+      if (self%ierr /= 0) then
+         print *, "Error opening file"
+         stop
+      end if
+      write(self%file_unit, '(A)') "Hello World, I initialized detritus.F90" ! VS only for short
    end subroutine
 
    subroutine get_vertical_movement(self, _ARGUMENTS_DO_)
@@ -104,7 +113,8 @@ contains
       real(rk) :: int_caco3_prod ! total produced CaCO3 in water column (mol CaCO3/m2/d)
       real(rk) :: fdiv_caco3 ! diagnostic value to be computed
       ! calculate CaCO3 divergence acc. to MOPS3.1 code (using "_GET_" for "space variate stuff"?)
-      _GET_HORIZONTAL_(self%id_int_det_prod, int_det_prod) ! seems to be forbidden, here
+      write(self%file_unit, '(A)') "I am do_column of detritus.F90"
+      _GET_HORIZONTAL_(self%id_int_det_prod, int_det_prod)
       int_caco3_prod = rcp * self%frac_caco3 * int_det_prod
       _DOWNWARD_LOOP_BEGIN_
          _GET_(self%id_bgc_z, z)
@@ -123,6 +133,7 @@ contains
          !    Now, fdiv_caco3(k) = int_caco3_prod * (fcaco3(k)-fcaco3(k+1)) / dz(k),
          !                       = int_caco3_prod * ( att_dz - 1 ) / sqrt( att_dz ) / att_z / dz
          fdiv_caco3 = int_caco3_prod * ( att_dz - 1._rk ) / sqrt( att_dz ) / att_z / dz
+!         write(self%file_unit, '(A, E10.3)') "I am a box in detritus.F90 with fdiv_caco3 = ", fdiv_caco3
          _SET_DIAGNOSTIC_( self%id_fdiv_caco3, fdiv_caco3 )
       _DOWNWARD_LOOP_END_
       _MOVE_TO_BOTTOM_
@@ -138,14 +149,15 @@ contains
       _DECLARE_ARGUMENTS_DO_
 
       real(rk) :: det_prod, caco3_prod, fdiv_caco3
+      write(self%file_unit, '(A)') "I am do of detritus.F90"
       _LOOP_BEGIN_
          _GET_(self%id_det_prod, det_prod) ! detritus produced by plankton
          _GET_(self%id_fdiv_caco3_in, fdiv_caco3) ! implicite CaCO divergence
          caco3_prod = rcp * self%frac_caco3 * det_prod ! CaCO3 portion of detritus produced by plankton
+!      write(self%file_unit, '(A, E10.3, A, E10.3)') "I am a box in detritus.F90 with caco3_prod = ", caco3_prod, " and fdiv_caco3 = ", fdiv_caco3
          ! effects of CaCO3 processes on DIC and Alk:
          _ADD_SOURCE_(self%id_dic, fdiv_caco3-caco3_prod)
-         !_ADD_SOURCE_(self%id_alk, 2._rk*(fdiv_caco3-caco3_prod))
-         _ADD_SOURCE_(self%id_alk, fdiv_caco3-caco3_prod) ! VS nur kurz
+         _ADD_SOURCE_(self%id_alk, 2._rk*(fdiv_caco3-caco3_prod))
       _LOOP_END_
    end subroutine do
 

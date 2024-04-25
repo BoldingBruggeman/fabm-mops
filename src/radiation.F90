@@ -15,6 +15,7 @@ module mops_radiation
 
       ! Parameters
       real(rk) :: parfrac
+      integer :: file_unit, ierr ! VS only for short
    contains
       ! Model procedures
       procedure :: initialize
@@ -42,6 +43,13 @@ contains
       call self%register_dependency(self%id_bgc_swr, 'sfac', 'W m-2', 'net downwelling shortwave flux at water surface')
       call self%register_dependency(self%id_bgc_seaice, standard_variables%ice_area_fraction)
       call self%register_dependency(self%id_att, standard_variables%attenuation_coefficient_of_photosynthetic_radiative_flux)
+      ! VS only for short, open detritus.log for writing:
+      open(unit=self%file_unit, file="radiation.log", status='replace', action='write', iostat=self%ierr)
+      if (self%ierr /= 0) then
+         print *, "Error opening file"
+         stop
+      end if
+      write(self%file_unit, '(A)') "Hello World, I initialized radiation.F90" ! VS only for short
    end subroutine
 
    subroutine do_column(self, _ARGUMENTS_DO_COLUMN_)
@@ -50,6 +58,7 @@ contains
 
       real(rk) :: bgc_swr, bgc_seaice, bgc_dz, ciz, att, atten
 
+      write(self%file_unit, '(A)') "I am in do_column of radiation.F90"
       _GET_SURFACE_(self%id_bgc_swr,bgc_swr)
       _GET_SURFACE_(self%id_bgc_seaice,bgc_seaice)
       ciz = bgc_swr*(1.0_rk-bgc_seaice)*self%parfrac
