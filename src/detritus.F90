@@ -56,7 +56,7 @@ contains
       call self%get_parameter(self%length_caco3, 'length_caco3', 'm','lenght scale for the e-fold function of dissolving CaCO3', default=4289.4_rk)
 
       call self%register_state_variable(self%id_det, 'c', 'mmol P/m3', 'detritus', minimum=0.0_rk)
-      call self%register_state_variable(self%id_alk, 'alk', 'mmol Alk/m3', 'alkalinity', minimum=0.0_rk)
+      call self%register_state_variable(self%id_alk, 'alk', 'mmol Alk/m3', 'alkalinity')
       call self%register_state_dependency(self%id_dic, 'dic', 'mmol C/m3', 'dissolved inorganic carbon')
       call self%add_to_aggregate_variable(standard_variables%total_phosphorus, self%id_det)
 
@@ -144,7 +144,8 @@ contains
          caco3_prod = rcp * self%frac_caco3 * det_prod ! CaCO3 portion of detritus produced by plankton
          ! effects of CaCO3 processes on DIC and Alk:
          _ADD_SOURCE_(self%id_dic, fdiv_caco3-caco3_prod)
-         _ADD_SOURCE_(self%id_alk, 2._rk*(fdiv_caco3-caco3_prod))
+         !_ADD_SOURCE_(self%id_alk, 2._rk*(fdiv_caco3-caco3_prod))
+         _ADD_SOURCE_(self%id_alk, fdiv_caco3-caco3_prod) ! VS nur kurz
       _LOOP_END_
    end subroutine do
 
