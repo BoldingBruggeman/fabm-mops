@@ -114,7 +114,7 @@ contains
       real(rk) :: fdiv_caco3 ! diagnostic value to be computed
       ! calculate CaCO3 divergence acc. to MOPS3.1 code (using "_GET_" for "space variate stuff"?)
       write(self%file_unit, '(A)') "I am do_column of detritus.F90"
-      _GET_HORIZONTAL_(self%id_int_det_prod, int_det_prod)
+      _GET_HORIZONTAL_(self%id_int_det_prod, int_det_prod) ! VS should this rather be placed within the LOOP?
       int_caco3_prod = rcp * self%frac_caco3 * int_det_prod
       _DOWNWARD_LOOP_BEGIN_
          _GET_(self%id_bgc_z, z)
