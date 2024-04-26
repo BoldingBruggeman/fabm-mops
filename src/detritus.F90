@@ -64,9 +64,11 @@ contains
 
       call self%register_diagnostic_variable(self%id_burial, 'burial', 'mmol P/m2/d', 'burial')
       ! VS diagnostic variable f8
-      call self%register_diagnostic_variable(self%id_f8, 'f8', 'mmol CaCO3/m3/d', 'production of CaCO3')
+      call self%register_diagnostic_variable(self%id_f8, 'f8', &
+         'mmol CaCO3/m3/d', 'production of CaCO3', source=source_do_column)
       ! VS diagnostic variable fdiv_caco3 (f9)
-      call self%register_diagnostic_variable(self%id_fdiv_caco3, 'fdiv_caco3', 'mmol CaCO3/m3/d', 'divergence of CaCO3')
+      call self%register_diagnostic_variable(self%id_fdiv_caco3, 'fdiv_caco3', &
+         'mmol CaCO3/m3/d', 'divergence of CaCO3', source=source_do_column)
 
       ! Register environmental dependencies
       ! VS stuff needed for CaCO3 flux divergence in subroutine do_column
