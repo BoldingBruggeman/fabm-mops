@@ -18,8 +18,8 @@ module mops_detritus
       type (type_horizontal_dependency_id) :: id_int_det_prod ! VS for CaCO3 divergence
       type (type_bottom_dependency_id) :: id_bgc_z_bot
       type (type_state_variable_id) :: id_det, id_dic, id_alk
-      type (type_diagnostic_variable_id) :: id_f8 ! VS CaCO3 production
-      type (type_diagnostic_variable_id) :: id_fdiv_caco3 ! (f9) VS CaCO3 divergence
+      type (type_diagnostic_variable_id) :: id_f9 ! VS CaCO3 production
+      type (type_diagnostic_variable_id) :: id_fdiv_caco3 ! (f8) VS CaCO3 divergence
       type (type_dependency_id) :: id_fdiv_caco3_in ! an immediate dependency of the former
       type (type_bottom_diagnostic_variable_id) :: id_burial
       ! VS I am planning to use change rates id_det_prod
@@ -47,6 +47,13 @@ contains
       class (type_mops_detritus), intent(inout), target :: self
       integer,                    intent(in)            :: configunit
 
+      ! VS borrowed the following line from fabm-pisces in conjunction with the
+      !    self%id_xxx%sms%link%target%source=source_do_column commands below.
+      !    The following line seems not necessary to force the code
+      !    to apply our _ADD_SOURCE_ commands in subroutine do_column
+      !    but causes slighly different results
+!      call self%register_implemented_routines((/source_do_column/))
+
       call self%get_parameter(self%detlambda, 'detlambda', '1/d','detritus remineralization rate', default=0.05_rk)
       call self%get_parameter(self%detwb, 'detwb', 'm/d','offset for detritus sinking', default=0.0_rk)
       call self%get_parameter(self%detmartin, 'detmartin', '-','exponent for Martin curve', default=0.8580_rk)
@@ -58,17 +65,23 @@ contains
       call self%get_parameter(self%length_caco3, 'length_caco3', 'm','lenght scale for the e-fold function of dissolving CaCO3', default=4289.4_rk)
 
       call self%register_state_variable(self%id_det, 'c', 'mmol P/m3', 'detritus', minimum=0.0_rk)
+      ! VS if SMS terms using _ADD_SOURCE_ are considered in subruotine do_column,
+      !    we have to flag this by the corresponding argument of register_state_variable,
+      !    because the default suboutine for source terms is subroutine do:
       call self%register_state_variable(self%id_alk, 'alk', 'mmol Alk/m3', 'alkalinity')
       call self%register_state_dependency(self%id_dic, 'dic', 'mmol C/m3', 'dissolved inorganic carbon')
+
       call self%add_to_aggregate_variable(standard_variables%total_phosphorus, self%id_det)
 
       call self%register_diagnostic_variable(self%id_burial, 'burial', 'mmol P/m2/d', 'burial')
       ! VS diagnostic variable f9
-      call self%register_diagnostic_variable(self%id_f8, 'f8', &
+      call self%register_diagnostic_variable(self%id_f9, 'f9', &
          'mmol CaCO3/m3/d', 'production of CaCO3', source=source_do_column)
       ! VS diagnostic variable fdiv_caco3 (f8)
       call self%register_diagnostic_variable(self%id_fdiv_caco3, 'fdiv_caco3', &
          'mmol CaCO3/m3/d', 'divergence of CaCO3', source=source_do_column)
+      ! VS remark: if a _SET_DIAGNOSTIC_ is done in another subroutine than do
+      !    this must be flagged, e.g., as above by source=source_do_column
 
       ! Register environmental dependencies
       ! VS stuff needed for CaCO3 flux divergence in subroutine do_column
@@ -76,20 +89,26 @@ contains
       call self%register_dependency(self%id_bgc_dz, standard_variables%cell_thickness)
       call self%register_dependency(self%id_det_prod, detritus_production_by_plankton)
       call self%register_expression_dependency(self%id_int_det_prod,vertical_integral(self%id_det_prod))
-      ! direct dependency on corresponding diagnostic variable
+      ! VS we have an immediate dependency on diagnostic variable fdiv_caco3
       call self%register_dependency(self%id_fdiv_caco3_in, 'fdiv_caco3', 'mmol CaCO3/m3/d', 'divergence of CaCO3')
 
       call self%register_dependency(self%id_bgc_z_bot, standard_variables%bottom_depth)
 
       self%dt = 86400.0_rk
 
-      ! VS only for short, open detritus.log for writing:
-      open(unit=self%file_unit, file="detritus.log", status='replace', action='write', iostat=self%ierr)
-      if (self%ierr /= 0) then
-         print *, "Error opening file"
-         stop
-      end if
-      write(self%file_unit, '(A)') "Hello World, I initialized detritus.F90" ! VS only for short
+      ! VS borrowed the following commands from fabm-pisces,
+      !    they appear to be necessary to make the _ADD_SOURCE_ commands
+      !    work in subroutine do_column (default is subroutine do) ???
+      self%id_alk%sms%link%target%source = source_do_column
+      self%id_dic%sms%link%target%source = source_do_column
+
+!      ! VS only for short, open detritus.log for writing:
+!      open(unit=self%file_unit, file="detritus.log", status='replace', action='write', iostat=self%ierr)
+!      if (self%ierr /= 0) then
+!         print *, "Error opening file"
+!         stop
+!      end if
+!      write(self%file_unit, '(A)') "Hello World, I initialized detritus.F90" ! VS only for short
    end subroutine
 
    subroutine get_vertical_movement(self, _ARGUMENTS_DO_)
@@ -123,27 +142,32 @@ contains
          _GET_(self%id_bgc_z, z)
          _GET_(self%id_bgc_dz, dz)
          _GET_(self%id_det_prod, det_prod )
-         fcaco3_u = exp( -( z - dz / 2 ) / self%length_caco3 ) ! flow portion through layer top
-         fcaco3_l = exp( -( z + dz / 2 ) / self%length_caco3 ) ! flow portion through layer bottom 
+         fcaco3_u = exp( -( z - dz / 2._rk ) / self%length_caco3 ) ! flow portion through layer top
+         fcaco3_l = exp( -( z + dz / 2._rk ) / self%length_caco3 ) ! flow portion through layer bottom 
          fdiv_caco3 = int_caco3_prod * ( fcaco3_u - fcaco3_l ) / dz ! CaCO3 flux divergence
-         _SET_DIAGNOSTIC_( self%id_fdiv_caco3, fdiv_caco3 )
-         ! VS in this case we may spare subroutine "do"
-         !    and calculate the following here:
+         _SET_DIAGNOSTIC_( self%id_fdiv_caco3, fdiv_caco3 ) ! f8_out in original MOPS code
+         ! VS having only a few extra commands for an optional subroutine "do"
+         !    we place the extra commands here
+         ! Remark: results slightly differ from those obtained by using "do"
          caco3_prod = rcp * self%frac_caco3 * det_prod ! CaCO3 portion of DET produced by plankton
-         _SET_DIAGNOSTIC_( self%id_f8, caco3_prod )
-         _ADD_SOURCE_(self%id_dic, fdiv_caco3-caco3_prod)
-         _ADD_SOURCE_(self%id_alk, 2._rk*(fdiv_caco3-caco3_prod))
-         write(self%file_unit, '(A, E10.3, A, E10.3, A, E10.3, A, E10.3, &
-            A, E10.3, A, E10.3, A, E10.3, A, E10.3, A, E10.3)') &
-            "I am a box in detritus.F90 with rcp = ", rcp, &
-            ", frac_caco3 = ", self%frac_caco3, &
-            ", int_det_prod = ", int_det_prod, &
-            ", int_caco3_prod = ", int_caco3_prod, &
-            ", upper flow portion = ", fcaco3_u, &
-            ", lower flow portion = ", fcaco3_l, &
-            ", dz = ", dz, &
-            ", fdiv_caco3 = ", fdiv_caco3, &
-            ", caco3_prod = ", caco3_prod
+         _SET_DIAGNOSTIC_( self%id_f9, caco3_prod )
+         _ADD_SOURCE_(self%id_dic, fdiv_caco3 - caco3_prod )
+         _ADD_SOURCE_(self%id_alk, 2._rk * ( fdiv_caco3 - caco3_prod ) )
+!         ! VS for short, debugging output:
+!         write(self%file_unit, '(A, E10.3, A, E10.3, A, E10.3, A, E10.3, &
+!            A, E10.3, A, E10.3, A, E10.3, A, E10.3, A, E10.3, A, E10.3, &
+!            A, E10.3)') &
+!            "I am a box in detritus.F90 with rcp = ", rcp, &
+!            ", frac_caco3 = ", self%frac_caco3, &
+!            ", det_prod = ", det_prod, &
+!            ", int_det_prod = ", int_det_prod, &
+!            ", int_caco3_prod = ", int_caco3_prod, &
+!            ", upper flow portion = ", fcaco3_u, &
+!            ", lower flow portion = ", fcaco3_l, &
+!            ", dz = ", dz, &
+!            ", fdiv_caco3 = ", fdiv_caco3, &
+!            ", caco3_prod = ", caco3_prod, &
+!            ", _ADD_SOURCE_( alk ) = ", 2._rk * ( fdiv_caco3 - caco3_prod )
       _DOWNWARD_LOOP_END_
       _MOVE_TO_BOTTOM_
       ! VS at the seafloor, all incoming CaCO3 remains to be dissolved,
@@ -153,7 +177,6 @@ contains
       ! VS adding the following correction terms for the bottom layer: 
       _ADD_SOURCE_(self%id_dic, int_caco3_prod * fcaco3_l / dz )
       _ADD_SOURCE_(self%id_alk, 2._rk * int_caco3_prod * fcaco3_l / dz )
-!      write(self%file_unit, '(A, E10.3, A, E10.3)') "I am a bottom box in detritus.F90 with caco3_prod = ", caco3_prod, " and fdiv_caco3 = ", fdiv_caco3
    end subroutine do_column
 
 !   subroutine do(self, _ARGUMENTS_DO_)
