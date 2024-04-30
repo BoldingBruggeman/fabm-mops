@@ -10,7 +10,7 @@ module mops_carbon
    private
 
    type, extends(type_base_model), public :: type_mops_carbon
-      type (type_state_variable_id) :: id_dic, id_alk
+      type (type_state_variable_id) :: id_dic !, id_alk
       type (type_dependency_id) :: id_pho, id_sil, id_bgc_salt, id_bgc_theta
       type (type_surface_dependency_id) :: id_bgc_wind, id_bgc_seaice, id_bgc_atmosp, id_pco2atm, id_surf_ph_in
       type (type_surface_diagnostic_variable_id) :: id_surf_ph, id_gasex

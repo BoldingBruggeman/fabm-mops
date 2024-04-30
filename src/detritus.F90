@@ -37,7 +37,7 @@ module mops_detritus
       procedure :: initialize
       procedure :: get_vertical_movement
       procedure :: do_column ! VS to calculate CaCO3 divergence
-      procedure :: do
+!      procedure :: do ! VS few extra stuff can be done in do_column, too
       procedure :: do_bottom
    end type type_mops_detritus
 
@@ -63,10 +63,10 @@ contains
       call self%add_to_aggregate_variable(standard_variables%total_phosphorus, self%id_det)
 
       call self%register_diagnostic_variable(self%id_burial, 'burial', 'mmol P/m2/d', 'burial')
-      ! VS diagnostic variable f8
+      ! VS diagnostic variable f9
       call self%register_diagnostic_variable(self%id_f8, 'f8', &
          'mmol CaCO3/m3/d', 'production of CaCO3', source=source_do_column)
-      ! VS diagnostic variable fdiv_caco3 (f9)
+      ! VS diagnostic variable fdiv_caco3 (f8)
       call self%register_diagnostic_variable(self%id_fdiv_caco3, 'fdiv_caco3', &
          'mmol CaCO3/m3/d', 'divergence of CaCO3', source=source_do_column)
 
@@ -110,58 +110,61 @@ contains
       class (type_mops_detritus), intent(in) :: self
       _DECLARE_ARGUMENTS_DO_COLUMN_
 
-      real(rk) :: z, dz, att_z, att_dz
-      real(rk) :: int_det_prod ! total produced detritus C in water column (mol C/m2/d)
-      real(rk) :: int_caco3_prod ! total produced CaCO3 in water column (mol CaCO3/m2/d)
+      real(rk) :: z, dz, fcaco3_u, fcaco3_l !, att_z, att_dz
+      real(rk) :: det_prod ! produced detritus C in (euphotic) box [mol C/m3/d]
+      real(rk) :: caco3_prod ! produced CaCO3 in (euphotic) box [mol CaCO3/m3/d]
+      real(rk) :: int_det_prod ! total produced detritus C in water column [mol C/m2/d]
+      real(rk) :: int_caco3_prod ! total produced CaCO3 in water column [mol CaCO3/m2/d]
       real(rk) :: fdiv_caco3 ! diagnostic value to be computed
-      ! calculate CaCO3 divergence acc. to MOPS3.1 code (using "_GET_" for "space variate stuff"?)
-      write(self%file_unit, '(A)') "I am do_column of detritus.F90"
-      _GET_HORIZONTAL_(self%id_int_det_prod, int_det_prod) ! VS should this rather be placed within the LOOP?
+      ! calculate CaCO3 divergence acc. to MOPS3.1 code
+      _GET_HORIZONTAL_(self%id_int_det_prod, int_det_prod)
       int_caco3_prod = rcp * self%frac_caco3 * int_det_prod
       _DOWNWARD_LOOP_BEGIN_
          _GET_(self%id_bgc_z, z)
          _GET_(self%id_bgc_dz, dz)
-         att_z = exp( z / self%length_caco3 ) ! "attenuation" (of water columns produced CaCO3) at depth z
-         att_dz = exp( dz / self%length_caco3 ) ! "attenuation" caused by a cell thickness dz
-         ! VS Original MOPS3.1 code uses flux fractions fcaco3(k) of CaCO3 calculated as
-         !    fcaco3(k) = exp( -zu(k)/length_caco3 ), with upper boundary depth zu(k) = z(k)-dz(k)/2.
-         !    Since zu(k+1) is the same as the lower boundary depth z(k)+dz(k)/2 of layer k,
-         !    we obtain (writing z=z(k), dz=dz(k), and L=length_caco3)
-         !    fcaco3(k)-fcaco3(k+1) = exp((-z+dz/2)/L) - exp((-z-dz/2)/L)
-         !                          = exp(-z/L) * (exp(dz/2/L)-exp(-dz/2/L))
-         !                          = exp(-z/L) * (sqrt(exp(dz/L))-1/sqrt(exp(dz/L)))
-         !                          = exp(-z/L) * (exp(dz/L)-1)/sqrt(exp(dz/L))
-         !                          = 1 / att_z * ( att_dz - 1 ) / sqrt( att_dz )
-         !    Now, fdiv_caco3(k) = int_caco3_prod * (fcaco3(k)-fcaco3(k+1)) / dz(k),
-         !                       = int_caco3_prod * ( att_dz - 1 ) / sqrt( att_dz ) / att_z / dz
-         fdiv_caco3 = int_caco3_prod * ( att_dz - 1._rk ) / sqrt( att_dz ) / att_z / dz
-!         write(self%file_unit, '(A, E10.3)') "I am a box in detritus.F90 with fdiv_caco3 = ", fdiv_caco3
+         _GET_(self%id_det_prod, det_prod )
+         fcaco3_u = exp( -( z - dz / 2 ) / self%length_caco3 ) ! flow portion through layer top
+         fcaco3_l = exp( -( z + dz / 2 ) / self%length_caco3 ) ! flow portion through layer bottom 
+         fdiv_caco3 = int_caco3_prod * ( fcaco3_u - fcaco3_l ) / dz ! CaCO3 flux divergence
          _SET_DIAGNOSTIC_( self%id_fdiv_caco3, fdiv_caco3 )
-      _DOWNWARD_LOOP_END_
-      _MOVE_TO_BOTTOM_
-      ! VS At the seafloor, all incoming CaCO3 remains to be dissolved,
-      ! i.e., actually fdiv_caco3(k) = int_caco3_prod * fcaco3(k) / dz(k)
-      !                              = int_caco3_prod * sqrt( att_dz ) / att_z / dz
-      fdiv_caco3 = int_caco3_prod * sqrt( att_dz ) / att_z / dz
-      _SET_DIAGNOSTIC_( self%id_fdiv_caco3, fdiv_caco3 )
-   end subroutine do_column
-
-   subroutine do(self, _ARGUMENTS_DO_)
-      class (type_mops_detritus), intent(in) :: self
-      _DECLARE_ARGUMENTS_DO_
-
-      real(rk) :: det_prod, caco3_prod, fdiv_caco3
-      write(self%file_unit, '(A)') "I am do of detritus.F90"
-      _LOOP_BEGIN_
-         _GET_(self%id_det_prod, det_prod) ! detritus produced by plankton
-         _GET_(self%id_fdiv_caco3_in, fdiv_caco3) ! implicite CaCO divergence
-         caco3_prod = rcp * self%frac_caco3 * det_prod ! CaCO3 portion of detritus produced by plankton
-!      write(self%file_unit, '(A, E10.3, A, E10.3)') "I am a box in detritus.F90 with caco3_prod = ", caco3_prod, " and fdiv_caco3 = ", fdiv_caco3
-         ! effects of CaCO3 processes on DIC and Alk:
+         ! VS in this case we may spare subroutine "do"
+         !    and calculate the following here:
+         caco3_prod = rcp * self%frac_caco3 * det_prod ! CaCO3 portion of DET produced by plankton
+!         _SET_DIAGNOSTIC_( self%id_f8, caco3_prod )
          _ADD_SOURCE_(self%id_dic, fdiv_caco3-caco3_prod)
          _ADD_SOURCE_(self%id_alk, 2._rk*(fdiv_caco3-caco3_prod))
-      _LOOP_END_
-   end subroutine do
+!         write(self%file_unit, '(A, E10.3, A, E10.3, A, E10.3, A, E10.3, A, E10.3, A, E10.3)') &
+!            "I am a box in detritus.F90 with int_caco3_prod = ", int_caco3_prod, &
+!            ", upper flow portion = ", fcaco3_u, &
+!            ", lower flow portion = ", fcaco3_l, &
+!            ", dz = ", dz, &
+!            ", fdiv_caco3 = ", fdiv_caco3, &
+!            ", caco3_prod = ", caco3_prod
+      _DOWNWARD_LOOP_END_
+      _MOVE_TO_BOTTOM_
+      ! VS at the seafloor, all incoming CaCO3 remains to be dissolved,
+      ! i.e., actually fdiv_caco3 = int_caco3_prod * fcaco3_u / dz
+      fdiv_caco3 = int_caco3_prod * fcaco3_u / dz
+      _SET_DIAGNOSTIC_( self%id_fdiv_caco3, fdiv_caco3 )
+      ! VS adding the following correction terms for the bottom layer: 
+      _ADD_SOURCE_(self%id_dic, int_caco3_prod * fcaco3_l / dz )
+      _ADD_SOURCE_(self%id_alk, 2._rk * int_caco3_prod * fcaco3_l / dz )
+!      write(self%file_unit, '(A, E10.3, A, E10.3)') "I am a bottom box in detritus.F90 with caco3_prod = ", caco3_prod, " and fdiv_caco3 = ", fdiv_caco3
+   end subroutine do_column
+
+!   subroutine do(self, _ARGUMENTS_DO_)
+!      class (type_mops_detritus), intent(in) :: self
+!      _DECLARE_ARGUMENTS_DO_
+!
+!      real(rk) :: det_prod, caco3_prod, fdiv_caco3
+!      _LOOP_BEGIN_
+!         _GET_(self%id_det_prod, det_prod) ! detritus produced by plankton
+!         _GET_(self%id_fdiv_caco3_in, fdiv_caco3) ! implicite CaCO divergence
+!         caco3_prod = rcp * self%frac_caco3 * det_prod ! CaCO3 portion of detritus produced by plankton
+!         _ADD_SOURCE_(self%id_dic, fdiv_caco3-caco3_prod)
+!         _ADD_SOURCE_(self%id_alk, 2._rk*(fdiv_caco3-caco3_prod))
+!      _LOOP_END_
+!   end subroutine do
 
    subroutine do_bottom(self, _ARGUMENTS_DO_BOTTOM_)
       class (type_mops_detritus), intent(in) :: self
