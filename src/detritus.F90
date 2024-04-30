@@ -53,7 +53,7 @@ contains
       call self%get_parameter(self%burdige_fac, 'burdige_fac', '-','factor for sediment burial (see Kriest and Oschlies, 2013)', default=1.6828_rk)
       call self%get_parameter(self%burdige_exp, 'burdige_exp', '-','exponent for sediment burial (see Kriest and Oschlies, 2013)', default=0.799_rk)
       ! VS Parameter $\sigma_\mathrm{CaCO3}$ in Chien et al., 2022
-      call self%get_parameter(self%frac_caco3, 'frac_caco3', 'mol CaCO3/mol C','calcite-to-organic-carbon ratio', default=0.32_rk)
+      call self%get_parameter(self%frac_caco3, 'frac_caco3', 'mol CaCO3/mol C','calcite-to-organic-carbon ratio', default=0.032_rk)
       ! VS Parameter $l_\mathrm{CaCO3}$ in Cien et al., 2022
       call self%get_parameter(self%length_caco3, 'length_caco3', 'm','lenght scale for the e-fold function of dissolving CaCO3', default=4289.4_rk)
 
@@ -130,16 +130,20 @@ contains
          ! VS in this case we may spare subroutine "do"
          !    and calculate the following here:
          caco3_prod = rcp * self%frac_caco3 * det_prod ! CaCO3 portion of DET produced by plankton
-!         _SET_DIAGNOSTIC_( self%id_f8, caco3_prod )
+         _SET_DIAGNOSTIC_( self%id_f8, caco3_prod )
          _ADD_SOURCE_(self%id_dic, fdiv_caco3-caco3_prod)
          _ADD_SOURCE_(self%id_alk, 2._rk*(fdiv_caco3-caco3_prod))
-!         write(self%file_unit, '(A, E10.3, A, E10.3, A, E10.3, A, E10.3, A, E10.3, A, E10.3)') &
-!            "I am a box in detritus.F90 with int_caco3_prod = ", int_caco3_prod, &
-!            ", upper flow portion = ", fcaco3_u, &
-!            ", lower flow portion = ", fcaco3_l, &
-!            ", dz = ", dz, &
-!            ", fdiv_caco3 = ", fdiv_caco3, &
-!            ", caco3_prod = ", caco3_prod
+         write(self%file_unit, '(A, E10.3, A, E10.3, A, E10.3, A, E10.3, &
+            A, E10.3, A, E10.3, A, E10.3, A, E10.3, A, E10.3)') &
+            "I am a box in detritus.F90 with rcp = ", rcp, &
+            ", frac_caco3 = ", self%frac_caco3, &
+            ", int_det_prod = ", int_det_prod, &
+            ", int_caco3_prod = ", int_caco3_prod, &
+            ", upper flow portion = ", fcaco3_u, &
+            ", lower flow portion = ", fcaco3_l, &
+            ", dz = ", dz, &
+            ", fdiv_caco3 = ", fdiv_caco3, &
+            ", caco3_prod = ", caco3_prod
       _DOWNWARD_LOOP_END_
       _MOVE_TO_BOTTOM_
       ! VS at the seafloor, all incoming CaCO3 remains to be dissolved,
