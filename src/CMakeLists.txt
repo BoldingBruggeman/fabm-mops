@@ -14,7 +14,7 @@ add_library(fabm_models_mops OBJECT
             runoff.F90
            )
 
-add_dependencies(fabm_models_mops fabm_base)
+target_link_libraries(fabm_models_mops PRIVATE fabm_base)
 
 #-----------------------------------------------------------------------
 # Copyright (C) 2023 - BB
