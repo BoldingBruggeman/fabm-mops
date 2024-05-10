@@ -17,7 +17,6 @@ module mops_carbon
 
       ! Parameters
       real(rk) :: ocmip_alkfac
-      real(rk) :: frac_caco3, length_caco3 ! VS parameters for CaCO3 divergence
    contains
       ! Model procedures
       procedure :: initialize
@@ -34,10 +33,6 @@ contains
       call self%register_state_variable(self%id_dic, 'c', 'mmol C/m3', 'dissolved inorganic carbon')
 
       call self%get_parameter(self%ocmip_alkfac, 'ocmip_alkfac', 'meq/m3/PSU', 'alkalinity relative to salinity', default=2310.0_rk*1.0245_rk/34.88_rk)
-      ! VS Parameter $\sigma_\mathrm{CaCO3}$ in Chien et al., 2022
-      call self%get_parameter(self%frac_caco3, 'frac_caco3', 'mol CaCO3/mol C','calcite-to-organic-carbon ratio', default=0.32_rk)
-      ! VS Parameter $l_\mathrm{CaCO3}$ in Cien et al., 2022
-      call self%get_parameter(self%length_caco3, 'length_caco3', 'm','lenght scale for the e-fold function of dissolving CaCO3', default=4289.4_rk)
 
       call self%register_diagnostic_variable(self%id_surf_ph, 'surf_ph', '-', 'surface pH', missing_value=8.0_rk)
       call self%register_diagnostic_variable(self%id_gasex, 'gasex', 'mmol C/m2/d', 'air-sea exchange of CO2')

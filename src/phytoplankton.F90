@@ -13,7 +13,7 @@ module mops_phytoplankton
       type (type_dependency_id) :: id_bgc_theta, id_bgc_dz, id_ciz, id_att
       type (type_surface_dependency_id) :: id_bgc_tau
       type (type_state_variable_id) :: id_c, id_po4, id_din, id_oxy, id_det, id_dop, id_dic
-      ! Volkmar: introducing id_det_prod_phy (see below)
+      ! VS  introducing id_det_prod_phy (see below)
       type (type_diagnostic_variable_id) :: id_f1, id_chl, id_det_prod_phy
 
       real(rk) :: TempB, ACmuphy, ACik, ACkpo4, AClambda, AComni, plambda, exutodop
@@ -47,7 +47,7 @@ contains
 
       call self%register_diagnostic_variable(self%id_f1, 'f1', 'mmol P/m3/d', 'growth rate')
       call self%register_diagnostic_variable(self%id_chl, 'chl', 'mg/m3/d', 'chlorophyll')
-      ! Volkmar: introducing detritus production by phytoplankton as diagnostic variable
+      ! VS  introducing detritus production by phytoplankton as diagnostic variable
       call self%register_diagnostic_variable(self%id_det_prod_phy, 'det_prod_phy', 'mmol P/m3/d', 'detritus produced by phytoplankton')
 
       call self%register_state_dependency(self%id_dop, 'dop', 'mmol P/m3', 'dissolved organic phosphorus')
@@ -67,7 +67,7 @@ contains
       call self%add_to_aggregate_variable(standard_variables%attenuation_coefficient_of_photosynthetic_radiative_flux, self%id_c, scale_factor=ACkchl)
       call self%add_to_aggregate_variable(standard_variables%total_phosphorus, self%id_c)
       call self%add_to_aggregate_variable(total_chlorophyll, self%id_chl)
-      ! Volkmar: phytoplankton (like zooplankton) detritus production contributes to total detritus production by plankton
+      ! VS  phytoplankton (like zooplankton) detritus production contributes to total detritus production by plankton
       call self%add_to_aggregate_variable(detritus_production_by_plankton, self%id_det_prod_phy)
 
       self%dt = 86400.0_rk

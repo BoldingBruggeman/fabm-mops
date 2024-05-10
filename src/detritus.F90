@@ -22,11 +22,6 @@ module mops_detritus
       type (type_diagnostic_variable_id) :: id_fdiv_caco3 ! (f8) VS CaCO3 divergence
       type (type_dependency_id) :: id_fdiv_caco3_in ! an immediate dependency of the former
       type (type_bottom_diagnostic_variable_id) :: id_burial
-      ! VS I am planning to use change rates id_det_prod
-      !    and id_fdiv_caco3 (which is supposed to be calculated in "do_column")
-      !    in procedure "do", using _ADD_TO_SOURCE_ for state variables DIC and Alk, later
-      ! VS Can I use a diagnostic variable calculated in one type procedure (do_column)
-      !    within another type procedure (do)?
 
       real(rk) :: detlambda, detwb, detmartin
       real(rk) :: burdige_fac, burdige_exp
@@ -65,9 +60,6 @@ contains
       call self%get_parameter(self%length_caco3, 'length_caco3', 'm','lenght scale for the e-fold function of dissolving CaCO3', default=4289.4_rk)
 
       call self%register_state_variable(self%id_det, 'c', 'mmol P/m3', 'detritus', minimum=0.0_rk)
-      ! VS if SMS terms using _ADD_SOURCE_ are considered in subruotine do_column,
-      !    we have to flag this by the corresponding argument of register_state_variable,
-      !    because the default suboutine for source terms is subroutine do:
       call self%register_state_variable(self%id_alk, 'alk', 'mmol Alk/m3', 'alkalinity')
       call self%register_state_dependency(self%id_dic, 'dic', 'mmol C/m3', 'dissolved inorganic carbon')
 
@@ -98,7 +90,7 @@ contains
 
       ! VS borrowed the following commands from fabm-pisces,
       !    they appear to be necessary to make the _ADD_SOURCE_ commands
-      !    work in subroutine do_column (default is subroutine do) ???
+      !    work in subroutine do_column (default is subroutine do)
       self%id_alk%sms%link%target%source = source_do_column
       self%id_dic%sms%link%target%source = source_do_column
 
