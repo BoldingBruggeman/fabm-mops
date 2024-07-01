@@ -72,6 +72,10 @@ contains
       _BOTTOM_LOOP_BEGIN_
          _GET_BOTTOM_(self%id_bgc_z_bot, bgc_z)
          _GET_(self%id_det, DET)
+
+! VS nur kurz?
+         DET = MAX(DET-alimit*alimit,0.0_rk)
+
          wdet = self%detwb + bgc_z*detwa
          fDET = wdet*DET
          flux_l = MIN(1.0_rk,self%burdige_fac*fDET**self%burdige_exp)*fDET
