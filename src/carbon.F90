@@ -74,8 +74,8 @@ contains
          _GET_SURFACE_(self%id_surf_ph_in, surf_ph)
 
    ! VS nur kurz? convert bgc_atmosp from Pa to bar
-         bgc_atmosp = bgc_atmosp / 101325.0_rk   ! from Pa to atm
-!         bgc_atmosp = bgc_atmosp / 100000.0_rk   ! from Pa to atm
+!         bgc_atmosp = bgc_atmosp / 101325.0_rk   ! from Pa to atm
+         bgc_atmosp = bgc_atmosp / 100000.0_rk   ! from Pa to atm
    ! Surface total alkalinity from the OCMIP protocol
          surf_alk = self%ocmip_alkfac*bgc_salt
 
@@ -84,7 +84,8 @@ contains
              surf_dic,surf_pho,surf_alk,surf_sil,bgc_theta,bgc_salt,pco2atm, &
              surf_ph,co2gasex)
 
-         _ADD_SURFACE_FLUX_(self%id_dic, co2gasex)
+! VS SETTING SURFACE FLUX TO ZERO
+!         _ADD_SURFACE_FLUX_(self%id_dic, co2gasex)
          _SET_SURFACE_DIAGNOSTIC_(self%id_gasex, co2gasex)
          _SET_SURFACE_DIAGNOSTIC_(self%id_surf_ph, surf_ph)
       _SURFACE_LOOP_END_
@@ -259,6 +260,14 @@ contains
 
       co2starair = co2sol*pco2atm*atmosp ! equilibrium CO2aq in mol/m^3
       co2ex=-KWexch*(co2star - co2starair)*convert_mol_to_mmol
+!      !VS nur kurz
+!      print *, 'KWexch is ', KWexch
+!      print *, 'co2star is ', co2star
+!      print *, 'co2starair is ', co2starair
+!      print *, 'convert_mol_to_mmol ', convert_mol_to_mmol
+!      print *, 'pco2atm is ', pco2atm
+!      print *, 'atmops is ', atmosp
+!      print *, 'co2ex is ', co2ex
 
    end subroutine
 
@@ -320,6 +329,8 @@ contains
 
 ! co2* converted from mol/kg to mol/m3 
       co2s = co2s/permil
+! VS nur kurz
+!      print *, 'co2s is ', co2s
 
 ! fflocal is the solubility (computed in car_coeffs) in mol/(kg*atm)
 ! To convert to mol/(m^3*uatm), multiply ff by 1e-6*1024.5, i.e.

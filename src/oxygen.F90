@@ -52,13 +52,14 @@ contains
          _GET_SURFACE_(self%id_bgc_seaice, bgc_seaice)
 
 ! VS nur kurz? (using bar instead of atm)
-         bgc_atmosp = bgc_atmosp / 101325.0_rk   ! from Pa to atm
-!         bgc_atmosp = bgc_atmosp / 100000.0_rk   ! from Pa to bar
+!         bgc_atmosp = bgc_atmosp / 101325.0_rk   ! from Pa to atm
+         bgc_atmosp = bgc_atmosp / 100000.0_rk   ! from Pa to bar
 
          vgas660=(0.337_rk*bgc_wind**2)*0.24_rk*(1.0_rk-bgc_seaice)
          CALL O2_SURFFORCING(vgas660,bgc_atmosp,bgc_theta,bgc_salt, &
              surf_oxy,o2gasex)
-         _ADD_SURFACE_FLUX_(self%id_oxy, o2gasex)
+! VS SETTING SURFACE FLUX TO ZERO
+!         _ADD_SURFACE_FLUX_(self%id_oxy, o2gasex)
       _SURFACE_LOOP_END_
    end subroutine do_surface
 

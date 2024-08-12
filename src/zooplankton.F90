@@ -58,6 +58,8 @@ contains
 
       real(rk) :: PHY, ZOO
       real(rk) :: graz0, graz, zooexu, zooloss
+! VS nur kurz
+      real(rk) :: term1, term2
 
       _LOOP_BEGIN_
 
@@ -69,7 +71,13 @@ contains
          if(PHY.gt.0.0_rk) then
 
 ! Grazing of zooplankton, Holling III
-           graz0=self%ACmuzoo*PHY*PHY/(self%ACkphy*self%ACkphy+PHY*PHY)*ZOO
+           graz0=((self%ACmuzoo*(PHY*PHY))/(self%ACkphy*self%ACkphy+PHY*PHY))*ZOO
+!! VS nur kurz
+!           print *, 'PHY in ZOO is ', PHY
+!           print *, 'ZOO is ', ZOO
+!           print *, 'ACkphy is ', self%ACkphy
+!           print *, 'ACmuzoo is ', self%ACmuzoo
+!           print *, 'graz0 is ', graz0 
 
 ! Make sure not to graze more phytoplankton than available.
            graz = MIN(PHY,graz0*bgc_dt)/bgc_dt
@@ -97,18 +105,28 @@ contains
        _SET_DIAGNOSTIC_(self%id_f2, graz)
 
 ! Collect all euphotic zone fluxes in these arrays.
-        _ADD_SOURCE_(self%id_c, self%ACeff*graz-zooexu-zooloss)
-        _ADD_SOURCE_(self%id_po4, zooexu)
-        _ADD_SOURCE_(self%id_dop, self%graztodop*(1.0_rk-self%ACeff)*graz + self%graztodop*zooloss)
-        _ADD_SOURCE_(self%id_oxy, -zooexu*ro2ut)
-        _ADD_SOURCE_(self%id_phy, -graz)
-        _ADD_SOURCE_(self%id_det, (1.0_rk-self%graztodop)*(1.0_rk-self%ACeff)*graz + (1.0_rk-self%graztodop)*zooloss)
-        _ADD_SOURCE_(self%id_din, zooexu*rnp)
-        _ADD_SOURCE_(self%id_dic, zooexu*rcp)
+! VS SETTING FLUXES TO ZERO
+!        _ADD_SOURCE_(self%id_c, self%ACeff*graz-zooexu-zooloss)
+!        _ADD_SOURCE_(self%id_po4, zooexu)
+!        _ADD_SOURCE_(self%id_dop, self%graztodop*(1.0_rk-self%ACeff)*graz + self%graztodop*zooloss)
+!        _ADD_SOURCE_(self%id_oxy, -zooexu*ro2ut)
+!        _ADD_SOURCE_(self%id_phy, -graz)
+!        _ADD_SOURCE_(self%id_det, (1.0_rk-self%graztodop)*(1.0_rk-self%ACeff)*graz + (1.0_rk-self%graztodop)*zooloss)
+!! VS nur kurz
+!        term1 = (1.0_rk-self%graztodop)*(1.0_rk-self%ACeff)*graz / 86400.0_rk 
+!        print *, '(1.0_rk-self%graztodop)*(1.0_rk-self%ACeff)*graz / sec is', term1
+!        term2 = (1.0_rk-self%graztodop)*zooloss / 86400.0_rk
+!        print *, '(1.0_rk-self%graztodop)*zooloss / sec is', term2
+
+!        _ADD_SOURCE_(self%id_din, zooexu*rnp)
+! VS nur kurz
+!        print *, 'zooexu / sec is ', zooexu / 86400.0_rk
+
+!        _ADD_SOURCE_(self%id_dic, zooexu*rcp)
 
          ZOO = MAX(ZOO - alimit*alimit, 0.0_rk)
-         _ADD_SOURCE_(self%id_c, -self%zlambda*ZOO)
-         _ADD_SOURCE_(self%id_dop, self%zlambda*ZOO)
+!         _ADD_SOURCE_(self%id_c, -self%zlambda*ZOO)
+!         _ADD_SOURCE_(self%id_dop, self%zlambda*ZOO)
 
       _LOOP_END_
    end subroutine do

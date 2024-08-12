@@ -79,7 +79,16 @@ contains
          wdet = self%detwb + bgc_z*detwa
          fDET = wdet*DET
          flux_l = MIN(1.0_rk,self%burdige_fac*fDET**self%burdige_exp)*fDET
-         _ADD_BOTTOM_FLUX_(self%id_det, -flux_l)
+! VS SETTING BOTTOM FLUX TO ZERO
+!         _ADD_BOTTOM_FLUX_(self%id_det, -flux_l)
+
+!         ! VS nur kurz
+!         print *, 'detwa is', detwa
+!         print *, 'wdet is', wdet
+!         print *, 'DET is', DET
+!         print *, 'fDET is', fDET
+!         print *, '-flux_l is', -flux_l
+!         print *, '-flux_l / sec / layer_thickness is', -flux_l / 86400.0_rk / 50.0_rk
          _SET_BOTTOM_DIAGNOSTIC_(self%id_burial, flux_l)
       _BOTTOM_LOOP_END_
 

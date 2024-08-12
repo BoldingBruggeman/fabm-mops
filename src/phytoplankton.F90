@@ -109,13 +109,27 @@ contains
          if(limnut.gt.vsafe) then
 
 ! The nutrient limitation of phytoplankton
-           fnutlim = limnut/(self%ackpo4+limnut)
+           fnutlim = limnut/(self%ACkpo4+limnut)
 
 ! The growth rate of phytoplankton: light*nutrient limitation.
            phygrow0 = TACmuphy*PHY*MIN(flightlim,fnutlim)
 
 ! Make sure not to take up more nutrients than available.
            phygrow = MIN(limnut,phygrow0*bgc_dt)/bgc_dt
+!! VS nur kurz
+!           print *, 'TACmuphy is ', TACmuphy
+!           print *, 'TACik is ', TACik
+!           print *, 'ciz is ', ciz
+!           print *, 'PHY in PHY is ', PHY
+!           print *, 'ackpo4 is ', self%ACkpo4
+!           print *, 'bgc_tau is ', bgc_tau
+!           print *, 'atten is ', atten
+!           print *, 'glbygd is ', glbygd
+!           print *, 'flightlim is ', flightlim
+!           print *, 'fnutlim is ', fnutlim
+!           print *, 'limnut is ', limnut
+!           print *, 'phygrow0 is ', phygrow0
+!           print *, 'phygrow made sure is ', phygrow
 
          else !limnut < vsafe
 
@@ -144,17 +158,24 @@ contains
        _SET_DIAGNOSTIC_(self%id_chl, 50._rk * PHY)
 
 ! Collect all euphotic zone fluxes in these arrays.
-        _ADD_SOURCE_(self%id_c,   phygrow-phyexu-phyloss)
-        _ADD_SOURCE_(self%id_po4, -phygrow)
-        _ADD_SOURCE_(self%id_dop, self%exutodop*phyexu + phyloss)
-        _ADD_SOURCE_(self%id_oxy, phygrow*ro2ut)
-        _ADD_SOURCE_(self%id_det, (1.0_rk-self%exutodop)*phyexu)
-        _ADD_SOURCE_(self%id_din, -phygrow*rnp)
-        _ADD_SOURCE_(self%id_dic, -phygrow*rcp)
+! VS SETTING FLUXES TO ZERO
+!        _ADD_SOURCE_(self%id_c,   phygrow-phyexu-phyloss)
+!        _ADD_SOURCE_(self%id_po4, -phygrow)
+!        _ADD_SOURCE_(self%id_dop, self%exutodop*phyexu + phyloss)
+!        _ADD_SOURCE_(self%id_oxy, phygrow*ro2ut)
+!        _ADD_SOURCE_(self%id_det, (1.0_rk-self%exutodop)*phyexu)
+! VS nur kurz
+        print *, 'phyexu / sec is ', phyexu / 86400.0_rk
+
+!        _ADD_SOURCE_(self%id_din, -phygrow*rnp)
+! VS nur kurz
+       print *, 'phygrow is ', phygrow
+
+!        _ADD_SOURCE_(self%id_dic, -phygrow*rcp)
 
          PHY = MAX(PHY - alimit*alimit, 0.0_rk)
-         _ADD_SOURCE_(self%id_c,   -self%plambda*PHY)
-         _ADD_SOURCE_(self%id_dop,  self%plambda*PHY)
+!         _ADD_SOURCE_(self%id_c,   -self%plambda*PHY)
+!         _ADD_SOURCE_(self%id_dop,  self%plambda*PHY)
 
       _LOOP_END_
    end subroutine do
