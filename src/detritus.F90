@@ -58,7 +58,8 @@ contains
       _LOOP_BEGIN_
          _GET_(self%id_bgc_z, bgc_z)
          wdet = self%detwb + bgc_z*detwa
-         _ADD_VERTICAL_VELOCITY_(self%id_det, -wdet)
+! VS SETTING VERTICAL_VELOCITY TO ZERO
+         !_ADD_VERTICAL_VELOCITY_(self%id_det, -wdet)
       _LOOP_END_
    end subroutine get_vertical_movement
 
