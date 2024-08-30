@@ -48,9 +48,11 @@ contains
 
       _SURFACE_LOOP_BEGIN_
          _GET_HORIZONTAL_(self%id_source, source)
-         _ADD_SURFACE_FLUX_(self%id_pho, source)
-         _ADD_SURFACE_FLUX_(self%id_din, source*rnp)
-         _ADD_SURFACE_FLUX_(self%id_dic, source*rcp)
+! VS nur kurz: switch off resupply of sediment burial via river runoff
+! VS: like for PETSc-TMM-MOPS I see that it has no effect in the first simualtion year!
+         !_ADD_SURFACE_FLUX_(self%id_pho, source)
+         !_ADD_SURFACE_FLUX_(self%id_din, source*rnp)
+         !_ADD_SURFACE_FLUX_(self%id_dic, source*rcp)
       _SURFACE_LOOP_END_
    end subroutine
 
