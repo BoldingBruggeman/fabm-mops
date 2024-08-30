@@ -165,11 +165,11 @@ contains
 !        _ADD_SOURCE_(self%id_oxy, phygrow*ro2ut)
 !        _ADD_SOURCE_(self%id_det, (1.0_rk-self%exutodop)*phyexu)
 ! VS nur kurz
-        print *, 'phyexu / sec is ', phyexu / 86400.0_rk
+!        print *, 'phyexu / sec is ', phyexu / 86400.0_rk
 
 !        _ADD_SOURCE_(self%id_din, -phygrow*rnp)
 ! VS nur kurz
-       print *, 'phygrow is ', phygrow
+!       print *, 'phygrow is ', phygrow
 
 !        _ADD_SOURCE_(self%id_dic, -phygrow*rcp)
 

@@ -80,7 +80,7 @@ contains
              nfixation = 0.0_rk
 
           endif
-          print *, 'nfixation is ', nfixation
+!          print *, 'nfixation is ', nfixation
 
           _SET_DIAGNOSTIC_(self%id_f6, nfixation)
 ! VS SETTING FLUX TO ZERO

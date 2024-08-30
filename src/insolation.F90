@@ -89,10 +89,10 @@ contains
 !          print *, 'solar is', solar
 !          print *, 'albedo is', albedo
 !          print *, 'cosz is', cosz
-          print *, 'Time is ', Time
-          print *, 'dayperyear is ', daysperyear
-          print *, 'dayfrac is ', dayfrac
-          print *, 'frac is ', frac
+!          print *, 'Time is ', Time
+!          print *, 'dayperyear is ', daysperyear
+!          print *, 'dayfrac is ', dayfrac
+!          print *, 'frac is ', frac
 !
 ! convert to sfac
           if (fluxi.gt.0.0_rk) sfac=fluxi

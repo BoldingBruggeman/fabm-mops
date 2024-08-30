@@ -46,12 +46,12 @@ contains
 
       if (self%whole_column) return ! VS exit (apply "do") if whole_column is true
 ! VS nur kurz
-        print *, 'runoff do_surface says hello'
+!        print *, 'runoff do_surface says hello'
 
       _SURFACE_LOOP_BEGIN_
          _GET_HORIZONTAL_(self%id_source, source)
 ! VS nur kurz
-         print *, 'source is ', source
+!        print *, 'source is ', source
 
 ! VS SETTING SURFACE FLUXES TO ZERO
 !         _ADD_SURFACE_FLUX_(self%id_pho, source)
@@ -68,14 +68,14 @@ contains
 
       if (.not. self%whole_column) return ! VS exit (apply "do_surface") if whole_column is false
 ! VS nur kurz
-        print *, 'runoff do says hello'
+!        print *, 'runoff do says hello'
 
       _LOOP_BEGIN_
          _GET_HORIZONTAL_(self%id_source, source)
          _GET_BOTTOM_(self%id_bottom_depth, bottom_depth)
          source = source / bottom_depth
 ! VS nur kurz
-         print *, 'source is ', source
+!         print *, 'source is ', source
 
 ! VS SETTING FLUXES TO ZERO
 !         _ADD_SOURCE_(self%id_pho, source)

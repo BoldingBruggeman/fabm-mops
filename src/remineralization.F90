@@ -96,10 +96,10 @@ contains
 
       remindop = oxymm*self%dlambda*DOP*o2usefrac
       ! VS nur kurz
-      print *, 'oxymm is ', oxymm
-      print *, 'dlambda is ', self%dlambda
-      print *, 'DOP is ', DOP
-      print *, 'o2usefrac is ', o2usefrac
+!      print *, 'oxymm is ', oxymm
+!      print *, 'dlambda is ', self%dlambda
+!      print *, 'DOP is ', DOP
+!      print *, 'o2usefrac is ', o2usefrac
 
       remindet = oxymm*self%detlambda*DET*o2usefrac
 
@@ -145,12 +145,12 @@ contains
 
 !      _ADD_SOURCE_(self%id_din, +(remindop+remindet)*rnp-(denitdop+denitdet)*rhno3ut)
 ! VS nur kurz
-       print *, 'remindop is ', remindop
-       print *, 'remindet is ', remindet
-       print *, 'rnp is ', rnp     
-       print *, 'denitdop is ', denitdop
-       print *, 'denitdet is ', denitdet
-       print *, 'rhno3ut is ', rhno3ut 
+!       print *, 'remindop is ', remindop
+!       print *, 'remindet is ', remindet
+!       print *, 'rnp is ', rnp     
+!       print *, 'denitdop is ', denitdop
+!       print *, 'denitdet is ', denitdet
+!       print *, 'rhno3ut is ', rhno3ut 
 
 !      _ADD_SOURCE_(self%id_dic, topo4*rcp)
       _SET_DIAGNOSTIC_(self%id_f4, remindop+remindet)
