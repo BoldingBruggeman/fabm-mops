@@ -110,7 +110,7 @@ contains
 !        _ADD_SOURCE_(self%id_po4, zooexu)
 !        _ADD_SOURCE_(self%id_dop, self%graztodop*(1.0_rk-self%ACeff)*graz + self%graztodop*zooloss)
 !        _ADD_SOURCE_(self%id_oxy, -zooexu*ro2ut)
-!        _ADD_SOURCE_(self%id_phy, -graz)
+        _ADD_SOURCE_(self%id_phy, -graz)
 !        _ADD_SOURCE_(self%id_det, (1.0_rk-self%graztodop)*(1.0_rk-self%ACeff)*graz + (1.0_rk-self%graztodop)*zooloss)
 !! VS nur kurz
 !        term1 = (1.0_rk-self%graztodop)*(1.0_rk-self%ACeff)*graz / 86400.0_rk 
