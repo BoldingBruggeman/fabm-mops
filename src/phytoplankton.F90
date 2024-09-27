@@ -13,7 +13,7 @@ module mops_phytoplankton
       type (type_dependency_id) :: id_bgc_theta, id_bgc_dz, id_ciz, id_att
       type (type_surface_dependency_id) :: id_bgc_tau
       type (type_state_variable_id) :: id_c, id_po4, id_din, id_oxy, id_det, id_dop, id_dic
-      type (type_diagnostic_variable_id) :: id_f1, id_chl
+      type (type_diagnostic_variable_id) :: id_f1, id_chl, id_exu, id_loss, id_grow, id_plambdaTimesPhy
 
       real(rk) :: TempB, ACmuphy, ACik, ACkpo4, AClambda, AComni, plambda, exutodop
    contains
@@ -46,6 +46,10 @@ contains
 
       call self%register_diagnostic_variable(self%id_f1, 'f1', 'mmol P/m3/d', 'growth rate')
       call self%register_diagnostic_variable(self%id_chl, 'chl', 'mg/m3/d', 'chlorophyll')
+      call self%register_diagnostic_variable(self%id_grow, 'grow', 'mmol P/m3/d', 'growth rate')
+      call self%register_diagnostic_variable(self%id_exu, 'exu', 'mmol P/m3/d', 'exudation rate')
+      call self%register_diagnostic_variable(self%id_loss, 'loss', 'mmol P/m3/d', 'loss rate')
+      call self%register_diagnostic_variable(self%id_plambdaTimesPhy, 'plambdaTimesPhy', 'mmol P/m3/d', 'phytoplanton sms term 4')
 
       call self%register_state_dependency(self%id_dop, 'dop', 'mmol P/m3', 'dissolved organic phosphorus')
       call self%register_state_dependency(self%id_det, 'det', 'mmol P/m3', 'detritus')
@@ -160,6 +164,10 @@ contains
 ! Collect all euphotic zone fluxes in these arrays.
 ! VS SETTING FLUXES TO ZERO UNDONE
        _ADD_SOURCE_(self%id_c,   phygrow-phyexu-phyloss)
+! VS need all SMS(PHY) terms to be diagnostics for debugging:
+       _SET_DIAGNOSTIC_(self%id_grow, phygrow)
+       _SET_DIAGNOSTIC_(self%id_exu, phyexu)
+       _SET_DIAGNOSTIC_(self%id_loss, phyloss)
 !       _ADD_SOURCE_(self%id_po4, -phygrow)
 !       _ADD_SOURCE_(self%id_dop, self%exutodop*phyexu + phyloss)
 !       _ADD_SOURCE_(self%id_oxy, phygrow*ro2ut)
@@ -175,6 +183,8 @@ contains
 
        PHY = MAX(PHY - alimit*alimit, 0.0_rk)
        _ADD_SOURCE_(self%id_c,   -self%plambda*PHY)
+! VS need all SMS(PHY) terms to be diagnostics for debugging:
+       _SET_DIAGNOSTIC_(self%id_plambdaTimesPhy, -self%plambda*PHY)
 !       _ADD_SOURCE_(self%id_dop,  self%plambda*PHY)
 
       _LOOP_END_
