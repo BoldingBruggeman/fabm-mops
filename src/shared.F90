@@ -5,7 +5,7 @@ module mops_shared
    real(rk), parameter :: rnp = 16.0_rk        !redfield ratio N:P
    real(rk), parameter :: ro2ut = 151.13958_rk !redfield -O2:P ratio
    real(rk), parameter :: rhno3ut = 0.8_rk*ro2ut - rnp ! -HNO3:P ratio for denitrification
-   real(rk), parameter :: bgc_dt = 1.0_rk      !max BGC timestep (d)
+   real(rk), parameter :: bgc_dt = 0.0625_rk   !VS this is the correct value
    real(rk), parameter :: convert_mol_to_mmol=1000.0_rk
    real(rk), parameter :: rho0=1024.5_rk
    real(rk), parameter :: permil=1.0_rk/rho0
