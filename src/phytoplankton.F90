@@ -77,7 +77,7 @@ contains
       _DECLARE_ARGUMENTS_DO_
 
       real(rk) :: bgc_theta, bgc_dz, ciz, bgc_tau, att, PO4, DIN, PHY
-      real(rk) :: tempscale, TACmuphy, TACik, atten, glbygd, flightlim, limnut, fnutlim, phygrow0, phygrow, phyexu, phyloss
+      real(rk) :: tempscale, TACmuphy, TACik, atten, glbygd, flightlim, limnut, fnutlim, phygrow0, phygrow, phyexu, phyloss, term1
 
       _LOOP_BEGIN_
 
@@ -117,23 +117,27 @@ contains
 
 ! The growth rate of phytoplankton: light*nutrient limitation.
            phygrow0 = TACmuphy*PHY*MIN(flightlim,fnutlim)
+           term1 = MIN(limnut,phygrow0*bgc_dt)
 
 ! Make sure not to take up more nutrients than available.
            phygrow = MIN(limnut,phygrow0*bgc_dt)/bgc_dt
-!! VS nur kurz
-!           print *, 'TACmuphy is ', TACmuphy
-!           print *, 'TACik is ', TACik
-!           print *, 'ciz is ', ciz
-!           print *, 'PHY in PHY is ', PHY
-!           print *, 'ackpo4 is ', self%ACkpo4
-!           print *, 'bgc_tau is ', bgc_tau
-!           print *, 'atten is ', atten
-!           print *, 'glbygd is ', glbygd
-!           print *, 'flightlim is ', flightlim
-!           print *, 'fnutlim is ', fnutlim
-!           print *, 'limnut is ', limnut
-!           print *, 'phygrow0 is ', phygrow0
-!           print *, 'phygrow made sure is ', phygrow
+! VS nur kurz
+           print *, 'TACmuphy is ', TACmuphy
+           print *, 'TACik is ', TACik
+           print *, 'ciz is ', ciz
+           print *, 'PHY in PHY is ', PHY
+           print *, 'ackpo4 is ', self%ACkpo4
+           print *, 'bgc_tau is ', bgc_tau
+           print *, 'atten is ', atten
+           print *, 'glbygd is ', glbygd
+           print *, 'flightlim is ', flightlim
+           print *, 'fnutlim is ', fnutlim
+           print *, 'limnut is ', limnut
+           print *, 'phygrow0 is ', phygrow0
+           print *, 'bgc_dt is ', bgc_dt
+           print *, 'MIN(limnut, phygrow0 * bgc_dt) is ', term1
+           print *, 'phygrow is ', phygrow
+           flush( 6 )
 
          else !limnut < vsafe
 

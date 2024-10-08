@@ -53,8 +53,8 @@ contains
       _GET_SURFACE_(self%id_bgc_swr,bgc_swr)
       _GET_SURFACE_(self%id_bgc_seaice,bgc_seaice)
       ciz = bgc_swr*(1.0_rk-bgc_seaice)*self%parfrac
-!! VS nur kurz konstantes Oberflächenlicht
-!      ciz = 100.0_rk
+! VS nur kurz konstantes Oberflächenlicht
+      ciz = 100.0_rk
 
 !! VS nur kurz
 !      print *, 'bgc_swr is ', bgc_swr
