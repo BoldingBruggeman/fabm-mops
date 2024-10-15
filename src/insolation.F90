@@ -11,7 +11,7 @@ module mops_insolation
    type, extends(type_base_model), public :: type_mops_insolation
       type (type_horizontal_dependency_id)       :: id_YC
       type (type_global_dependency_id)           :: id_Time
-      type (type_surface_diagnostic_variable_id) :: id_sfac, id_stau
+      type (type_surface_diagnostic_variable_id) :: id_sfac, id_stau, id_frac ! VS id_frac for debuggung
    contains
       ! Model procedures
       procedure :: initialize
@@ -27,6 +27,7 @@ contains
       ! Register diagnostic variables
       call self%register_diagnostic_variable(self%id_sfac, 'sfac', 'W m-2', 'daily mean downwelling shortwave')
       call self%register_diagnostic_variable(self%id_stau, 'stau', 'd', 'day length')
+      call self%register_diagnostic_variable(self%id_frac, 'frac', '1', 'time as fraction of year')
 
       ! Register environmental dependencies
       call self%register_dependency(self%id_YC, standard_variables%latitude)
@@ -44,7 +45,9 @@ contains
 ! !INPUT PARAMETERS: ===================================================
 ! time                 :: current time
        real(rk) :: time,Yc
-       real(rk) :: daysperyear = 365.2425_rk
+!      VS nur kurz fix wired 360.0_rk in order to match "PETSc-MOPS" simulation
+!       real(rk) :: daysperyear = 365.2425_rk
+       real(rk) :: daysperyear = 360.0_rk
 
 ! !LOCAL VARIABLES: ====================================================
        real(rk) ::  solar, albedo
@@ -99,6 +102,11 @@ contains
 ! very large for polar night
           if (fluxi.lt.0.00001_rk) sfac=0.00001_rk
           _SET_SURFACE_DIAGNOSTIC_(self%id_sfac, sfac)
+! VS nur kurz
+!          print *, 'sfac is ', sfac
+!          flush( 6 )
+          _SET_SURFACE_DIAGNOSTIC_(self%id_frac, dayfrac)
+
 ! daylength; ensure that it lies between 0 and 1 (may be slightly
 ! out of this range in high latitudes)
           fracmin = MIN(frac,1.0_rk)

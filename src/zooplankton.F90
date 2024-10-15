@@ -11,7 +11,7 @@ module mops_zooplankton
 
    type, extends(type_base_model), public :: type_mops_zooplankton
       type (type_state_variable_id) :: id_c, id_phy, id_po4, id_din, id_oxy, id_det, id_dop, id_dic
-      type (type_diagnostic_variable_id) :: id_f2
+      type (type_diagnostic_variable_id) :: id_graz
 
       real(rk) :: ACmuzoo, ACkphy, AClambdaz, AComniz, ACeff, graztodop, zlambda
    contains
@@ -36,7 +36,7 @@ contains
 
       call self%register_state_variable(self%id_c, 'c', 'mmol P/m3', 'concentration', minimum=0.0_rk)
 
-      call self%register_diagnostic_variable(self%id_f2, 'f2', 'mmol P/m3/d', 'grazing')
+      call self%register_diagnostic_variable(self%id_graz, 'graz', 'mmol P/m3/d', 'grazing')
 
       call self%register_state_dependency(self%id_phy, 'phy', 'mmol P/m3', 'phytoplankton')
       call self%register_state_dependency(self%id_dop, 'dop', 'mmol P/m3', 'dissolved organic phosphorus')
@@ -102,7 +102,7 @@ contains
 
        endif !ZOO
 
-       _SET_DIAGNOSTIC_(self%id_f2, graz)
+       _SET_DIAGNOSTIC_(self%id_graz, graz)
 
 ! Collect all euphotic zone fluxes in these arrays.
 ! VS SETTING FLUXES TO ZERO

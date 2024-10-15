@@ -122,22 +122,22 @@ contains
 ! Make sure not to take up more nutrients than available.
            phygrow = MIN(limnut,phygrow0*bgc_dt)/bgc_dt
 ! VS nur kurz
-           print *, 'TACmuphy is ', TACmuphy
-           print *, 'TACik is ', TACik
-           print *, 'ciz is ', ciz
-           print *, 'PHY in PHY is ', PHY
-           print *, 'ackpo4 is ', self%ACkpo4
-           print *, 'bgc_tau is ', bgc_tau
-           print *, 'atten is ', atten
-           print *, 'glbygd is ', glbygd
-           print *, 'flightlim is ', flightlim
-           print *, 'fnutlim is ', fnutlim
-           print *, 'limnut is ', limnut
-           print *, 'phygrow0 is ', phygrow0
-           print *, 'bgc_dt is ', bgc_dt
-           print *, 'MIN(limnut, phygrow0 * bgc_dt) is ', term1
-           print *, 'phygrow is ', phygrow
-           flush( 6 )
+!           print *, 'TACmuphy is ', TACmuphy
+!           print *, 'TACik is ', TACik
+!           print *, 'ciz is ', ciz
+!           print *, 'PHY in PHY is ', PHY
+!           print *, 'ackpo4 is ', self%ACkpo4
+!           print *, 'bgc_tau is ', bgc_tau
+!           print *, 'atten is ', atten
+!           print *, 'glbygd is ', glbygd
+!           print *, 'flightlim is ', flightlim
+!           print *, 'fnutlim is ', fnutlim
+!           print *, 'limnut is ', limnut
+!           print *, 'phygrow0 is ', phygrow0
+!           print *, 'bgc_dt is ', bgc_dt
+!           print *, 'MIN(limnut, phygrow0 * bgc_dt) is ', term1
+!           print *, 'phygrow is ', phygrow
+!           flush( 6 )
 
          else !limnut < vsafe
 
