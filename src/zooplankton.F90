@@ -34,7 +34,9 @@ contains
       call self%get_parameter(self%AComniz, 'AComniz', 'm3/(mmol P * day)','density dependent loss rate', default=4.548_rk)
       call self%get_parameter(self%zlambda, 'zlambda', '1/d','mortality', default=0.01_rk)
 
-      call self%register_state_variable(self%id_c, 'c', 'mmol P/m3', 'concentration', minimum=0.0_rk)
+! VS nur kurz without minimum value to avoid clipping in TMM implementation
+! (see Jorns mail on October 16, 2024)
+      call self%register_state_variable(self%id_c, 'c', 'mmol P/m3', 'concentration') !, minimum=0.0_rk)
 
       call self%register_diagnostic_variable(self%id_graz, 'graz', 'mmol P/m3/d', 'grazing')
 
