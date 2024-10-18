@@ -13,7 +13,7 @@ module mops_phytoplankton
       type (type_dependency_id) :: id_bgc_theta, id_bgc_dz, id_ciz, id_att
       type (type_surface_dependency_id) :: id_bgc_tau
       type (type_state_variable_id) :: id_c, id_po4, id_din, id_oxy, id_det, id_dop, id_dic
-      type (type_diagnostic_variable_id) :: id_f1, id_chl, id_exu, id_loss, id_grow, id_plambdaTimesPhy ! VS some more for debugging
+      type (type_diagnostic_variable_id) :: id_f1, id_chl, id_exu, id_loss, id_grow, id_plambdaTimesPhy
 
       real(rk) :: TempB, ACmuphy, ACik, ACkpo4, AClambda, AComni, plambda, exutodop
    contains
@@ -42,13 +42,12 @@ contains
       call self%get_parameter(self%AComni, 'AComni', 'm3/(mmol P * day)','density dependent loss rate', default=0.0_rk) 
       call self%get_parameter(self%plambda, 'plambda', '1/d','mortality', default=0.01_rk) 
 
-! VS WITHOUT MINIMUM VALUE TO AVOID CLIPPING IN TMM IMPLEMENTATION
+! VS nur kurz without minimum value to avoid clipping in TMM implementation
 ! (see Jorns mail on October 16, 2024)
       call self%register_state_variable(self%id_c, 'c', 'mmol P/m3', 'concentration')!, minimum=0.0_rk)
 
       call self%register_diagnostic_variable(self%id_f1, 'f1', 'mmol P/m3/d', 'growth rate')
       call self%register_diagnostic_variable(self%id_chl, 'chl', 'mg/m3/d', 'chlorophyll')
-! VS THE FOLLOWING WERE FOR DEBUGGING
       call self%register_diagnostic_variable(self%id_grow, 'grow', 'mmol P/m3/d', 'growth rate')
       call self%register_diagnostic_variable(self%id_exu, 'exu', 'mmol P/m3/d', 'exudation rate')
       call self%register_diagnostic_variable(self%id_loss, 'loss', 'mmol P/m3/d', 'loss rate')
@@ -80,7 +79,6 @@ contains
       _DECLARE_ARGUMENTS_DO_
 
       real(rk) :: bgc_theta, bgc_dz, ciz, bgc_tau, att, PO4, DIN, PHY
-! VS TERM1 TO PRINT FOR DEBUGGING IN 0D
       real(rk) :: tempscale, TACmuphy, TACik, atten, glbygd, flightlim, limnut, fnutlim, phygrow0, phygrow, phyexu, phyloss, term1
 
       _LOOP_BEGIN_
@@ -121,7 +119,7 @@ contains
 
 ! The growth rate of phytoplankton: light*nutrient limitation.
            phygrow0 = TACmuphy*PHY*MIN(flightlim,fnutlim)
-           term1 = MIN(limnut,phygrow0*bgc_dt) ! VS FOR DEBUGGING
+           term1 = MIN(limnut,phygrow0*bgc_dt)
 
 ! Make sure not to take up more nutrients than available.
            phygrow = MIN(limnut,phygrow0*bgc_dt)/bgc_dt
@@ -170,27 +168,30 @@ contains
        _SET_DIAGNOSTIC_(self%id_chl, 50._rk * PHY)
 
 ! Collect all euphotic zone fluxes in these arrays.
+! VS SETTING FLUXES TO ZERO UNDONE
        _ADD_SOURCE_(self%id_c,   phygrow-phyexu-phyloss)
 ! VS need all SMS(PHY) terms to be diagnostics for debugging:
        _SET_DIAGNOSTIC_(self%id_grow, phygrow)
        _SET_DIAGNOSTIC_(self%id_exu, phyexu)
        _SET_DIAGNOSTIC_(self%id_loss, phyloss)
-! VS ADD SOURCES FOR ALL TRACERS, AGAIN, OCTOBER 18, 2024
-       _ADD_SOURCE_(self%id_po4, -phygrow)
-       _ADD_SOURCE_(self%id_dop, self%exutodop*phyexu + phyloss)
-       _ADD_SOURCE_(self%id_oxy, phygrow*ro2ut)
-       _ADD_SOURCE_(self%id_det, (1.0_rk-self%exutodop)*phyexu)
-       _ADD_SOURCE_(self%id_din, -phygrow*rnp)
-       _ADD_SOURCE_(self%id_dic, -phygrow*rcp)
+!       _ADD_SOURCE_(self%id_po4, -phygrow)
+!       _ADD_SOURCE_(self%id_dop, self%exutodop*phyexu + phyloss)
+!       _ADD_SOURCE_(self%id_oxy, phygrow*ro2ut)
+!       _ADD_SOURCE_(self%id_det, (1.0_rk-self%exutodop)*phyexu)
 ! VS nur kurz
 !        print *, 'phyexu / sec is ', phyexu / 86400.0_rk
+
+!       _ADD_SOURCE_(self%id_din, -phygrow*rnp)
 ! VS nur kurz
 !       print *, 'phygrow is ', phygrow
+
+!       _ADD_SOURCE_(self%id_dic, -phygrow*rcp)
+
        PHY = MAX(PHY - alimit*alimit, 0.0_rk)
        _ADD_SOURCE_(self%id_c,   -self%plambda*PHY)
-       _ADD_SOURCE_(self%id_dop,  self%plambda*PHY)
 ! VS need all SMS(PHY) terms to be diagnostics for debugging:
        _SET_DIAGNOSTIC_(self%id_plambdaTimesPhy, -self%plambda*PHY)
+!       _ADD_SOURCE_(self%id_dop,  self%plambda*PHY)
 
       _LOOP_END_
    end subroutine do
