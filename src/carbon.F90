@@ -75,7 +75,7 @@ contains
 
    ! VS nur kurz? convert bgc_atmosp from Pa to bar
 !         bgc_atmosp = bgc_atmosp / 101325.0_rk   ! from Pa to atm
-         bgc_atmosp = bgc_atmosp / 100000.0_rk   ! from Pa to atm
+         bgc_atmosp = bgc_atmosp / 100000.0_rk   ! from Pa to bar
    ! Surface total alkalinity from the OCMIP protocol
          surf_alk = self%ocmip_alkfac*bgc_salt
 
@@ -85,7 +85,8 @@ contains
              surf_ph,co2gasex)
 
 ! VS SETTING SURFACE FLUX TO ZERO
-!         _ADD_SURFACE_FLUX_(self%id_dic, co2gasex)
+! VS ALLOW SURFACE FLUX, AGAIN, OCTOBER 18, 2024
+         _ADD_SURFACE_FLUX_(self%id_dic, co2gasex)
          _SET_SURFACE_DIAGNOSTIC_(self%id_gasex, co2gasex)
          _SET_SURFACE_DIAGNOSTIC_(self%id_surf_ph, surf_ph)
       _SURFACE_LOOP_END_

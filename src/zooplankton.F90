@@ -34,7 +34,7 @@ contains
       call self%get_parameter(self%AComniz, 'AComniz', 'm3/(mmol P * day)','density dependent loss rate', default=4.548_rk)
       call self%get_parameter(self%zlambda, 'zlambda', '1/d','mortality', default=0.01_rk)
 
-! VS nur kurz without minimum value to avoid clipping in TMM implementation
+! VS WITHOUT MINIMUM VALUE TO AVOID CLIPPING IN TMM IMPLEMENTATION
 ! (see Jorns mail on October 16, 2024)
       call self%register_state_variable(self%id_c, 'c', 'mmol P/m3', 'concentration') !, minimum=0.0_rk)
 
@@ -60,7 +60,7 @@ contains
 
       real(rk) :: PHY, ZOO
       real(rk) :: graz0, graz, zooexu, zooloss
-! VS nur kurz
+! VS nur kurz TERMS FOR DEBUGGING IN 0D
       real(rk) :: term1, term2
 
       _LOOP_BEGIN_
@@ -73,7 +73,7 @@ contains
          if(PHY.gt.0.0_rk) then
 
 ! Grazing of zooplankton, Holling III
-           graz0=((self%ACmuzoo*(PHY*PHY))/(self%ACkphy*self%ACkphy+PHY*PHY))*ZOO
+           graz0=self%ACmuzoo*PHY*PHY/(self%ACkphy*self%ACkphy+PHY*PHY)*ZOO
 !! VS nur kurz
 !           print *, 'PHY in ZOO is ', PHY
 !           print *, 'ZOO is ', ZOO
@@ -107,28 +107,26 @@ contains
        _SET_DIAGNOSTIC_(self%id_graz, graz)
 
 ! Collect all euphotic zone fluxes in these arrays.
-! VS SETTING FLUXES TO ZERO
-!        _ADD_SOURCE_(self%id_c, self%ACeff*graz-zooexu-zooloss)
-!        _ADD_SOURCE_(self%id_po4, zooexu)
-!        _ADD_SOURCE_(self%id_dop, self%graztodop*(1.0_rk-self%ACeff)*graz + self%graztodop*zooloss)
-!        _ADD_SOURCE_(self%id_oxy, -zooexu*ro2ut)
+! VS WITHOUT ADDING SOURCES
+! VS USE _ADD_SOURCE_, AGAIN, OCTOBER 18, 2024
+        _ADD_SOURCE_(self%id_c, self%ACeff*graz-zooexu-zooloss)
+        _ADD_SOURCE_(self%id_po4, zooexu)
+        _ADD_SOURCE_(self%id_dop, self%graztodop*(1.0_rk-self%ACeff)*graz + self%graztodop*zooloss)
+        _ADD_SOURCE_(self%id_oxy, -zooexu*ro2ut)
         _ADD_SOURCE_(self%id_phy, -graz)
-!        _ADD_SOURCE_(self%id_det, (1.0_rk-self%graztodop)*(1.0_rk-self%ACeff)*graz + (1.0_rk-self%graztodop)*zooloss)
-!! VS nur kurz
+        _ADD_SOURCE_(self%id_det, (1.0_rk-self%graztodop)*(1.0_rk-self%ACeff)*graz + (1.0_rk-self%graztodop)*zooloss)
+        _ADD_SOURCE_(self%id_din, zooexu*rnp)
+        _ADD_SOURCE_(self%id_dic, zooexu*rcp)
+! VS nur kurz
 !        term1 = (1.0_rk-self%graztodop)*(1.0_rk-self%ACeff)*graz / 86400.0_rk 
 !        print *, '(1.0_rk-self%graztodop)*(1.0_rk-self%ACeff)*graz / sec is', term1
 !        term2 = (1.0_rk-self%graztodop)*zooloss / 86400.0_rk
 !        print *, '(1.0_rk-self%graztodop)*zooloss / sec is', term2
-
-!        _ADD_SOURCE_(self%id_din, zooexu*rnp)
-! VS nur kurz
 !        print *, 'zooexu / sec is ', zooexu / 86400.0_rk
 
-!        _ADD_SOURCE_(self%id_dic, zooexu*rcp)
-
          ZOO = MAX(ZOO - alimit*alimit, 0.0_rk)
-!         _ADD_SOURCE_(self%id_c, -self%zlambda*ZOO)
-!         _ADD_SOURCE_(self%id_dop, self%zlambda*ZOO)
+         _ADD_SOURCE_(self%id_c, -self%zlambda*ZOO)
+         _ADD_SOURCE_(self%id_dop, self%zlambda*ZOO)
 
       _LOOP_END_
    end subroutine do

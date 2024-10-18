@@ -36,8 +36,8 @@ contains
       call self%get_parameter(self%burdige_fac, 'burdige_fac', '-','factor for sediment burial (see Kriest and Oschlies, 2013)', default=1.6828_rk)
       call self%get_parameter(self%burdige_exp, 'burdige_exp', '-','exponent for sediment burial (see Kriest and Oschlies, 2013)', default=0.799_rk)
 
-! VS nur kurz without minimum value to avoid clipping in TMM implementation
-! (see Jorns mail on October 16, 2024)
+! VS without minimum value to avoid clipping in TMM implementation
+! acc. to Jorns mail on October 16, 2024
       call self%register_state_variable(self%id_det, 'c', 'mmol P/m3', 'detritus')!, minimum=0.0_rk)
       call self%add_to_aggregate_variable(standard_variables%total_phosphorus, self%id_det)
 
@@ -61,7 +61,8 @@ contains
          _GET_(self%id_bgc_z, bgc_z)
          wdet = self%detwb + bgc_z*detwa
 ! VS SETTING VERTICAL_VELOCITY TO ZERO
-         !_ADD_VERTICAL_VELOCITY_(self%id_det, -wdet)
+! VS USE VERTICAL_VELOCITY, AGAIN, OCTOBER 18, 2024
+         _ADD_VERTICAL_VELOCITY_(self%id_det, -wdet)
       _LOOP_END_
    end subroutine get_vertical_movement
 
@@ -83,7 +84,8 @@ contains
          fDET = wdet*DET
          flux_l = MIN(1.0_rk,self%burdige_fac*fDET**self%burdige_exp)*fDET
 ! VS SETTING BOTTOM FLUX TO ZERO
-!         _ADD_BOTTOM_FLUX_(self%id_det, -flux_l)
+! VS USE BOTTOM FLUX, AGAIN, OCTOBER 18, 2024
+         _ADD_BOTTOM_FLUX_(self%id_det, -flux_l)
 
 !         ! VS nur kurz
 !         print *, 'detwa is', detwa

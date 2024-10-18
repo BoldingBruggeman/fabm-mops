@@ -45,7 +45,9 @@ contains
 ! !INPUT PARAMETERS: ===================================================
 ! time                 :: current time
        real(rk) :: time,Yc
-!      VS nur kurz fix wired 360.0_rk in order to match "PETSc-MOPS" simulation
+!      VS TEMPORARLY USE FIX WIRED 360.0_rk TO MATCH "PETSc-MOPS" SIMULATION
+!         TODO: INTRODUCE FELXIBLE SOLUTION
+!               AS SUGGESTED BY JORN, 2ND MAIL, OCTOBER 16, 2024
 !       real(rk) :: daysperyear = 365.2425_rk
        real(rk) :: daysperyear = 360.0_rk
 

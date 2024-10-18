@@ -84,7 +84,8 @@ contains
 
           _SET_DIAGNOSTIC_(self%id_f6, nfixation)
 ! VS SETTING FLUX TO ZERO
-!           _ADD_SOURCE_(self%id_din, nfixation)
+! VS USE FLUX, AGAIN, OCTOBER 18, 2024
+           _ADD_SOURCE_(self%id_din, nfixation)
 
       _LOOP_END_
    end subroutine do

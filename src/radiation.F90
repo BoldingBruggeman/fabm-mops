@@ -36,7 +36,7 @@ contains
 
       ! Register diagnostic variables
       call self%register_diagnostic_variable(self%id_ciz, 'ciz', 'W m-2', 'PAR at top of the layer', source=source_do_column)
-      ! VS nur kurz atten for debugging
+      ! VS ATTEN FOR DEBUGGING
       call self%register_diagnostic_variable(self%id_atten, 'atten', '1', 'attenuation factor', source=source_do_column)
 
       ! Register environmental dependencies
@@ -56,7 +56,7 @@ contains
       _GET_SURFACE_(self%id_bgc_seaice,bgc_seaice)
       ciz = bgc_swr*(1.0_rk-bgc_seaice)*self%parfrac
       atten = 0
-! VS nur kurz konstantes Oberflächenlicht
+! VS nur kurz DEBUGGING WITH CONSTANT SURFACE RADIATION
 !      ciz = 100.0_rk
 
 !! VS nur kurz
@@ -66,7 +66,7 @@ contains
 
       _DOWNWARD_LOOP_BEGIN_
          _SET_DIAGNOSTIC_(self%id_ciz,ciz)
-! VS nur kurz diagnostic for atten for debugging
+! VS nur kurz DIAGNOSTIC FOR ATTEN FOR DEBUGGING
          _SET_DIAGNOSTIC_(self%id_atten,atten)
          _GET_(self%id_bgc_dz,bgc_dz)     ! Layer height (m)
          _GET_(self%id_att,att)           ! Attenuation by water and phytoplankton combined (1/m)
