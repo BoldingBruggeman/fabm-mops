@@ -74,16 +74,8 @@ contains
 
 ! Grazing of zooplankton, Holling III
            graz0=((self%ACmuzoo*(PHY*PHY))/(self%ACkphy*self%ACkphy+PHY*PHY))*ZOO
-!! VS nur kurz
-!           print *, 'PHY in ZOO is ', PHY
-!           print *, 'ZOO is ', ZOO
-!           print *, 'ACkphy is ', self%ACkphy
-!           print *, 'ACmuzoo is ', self%ACmuzoo
-!           print *, 'graz0 is ', graz0 
-
 ! Make sure not to graze more phytoplankton than available.
            graz = MIN(PHY,graz0*bgc_dt)/bgc_dt
-
          else !PHY < 0
 
            graz=0.0_rk
@@ -103,6 +95,14 @@ contains
            zooloss = 0.0_rk
 
        endif !ZOO
+!! VS nur kurz
+!           print *, 'PHY in ZOO is ', PHY
+!           print *, 'ZOO is ', ZOO
+!           print *, 'ACkphy is ', self%ACkphy
+!           print *, 'ACmuzoo is ', self%ACmuzoo
+!           print *, 'graz0 is ', graz0 
+!           print *, 'graz is ', graz
+!           print *, ' '
 
        _SET_DIAGNOSTIC_(self%id_graz, graz)
 

@@ -88,7 +88,13 @@ contains
           frac = dayhrs/3.1416_rk               !fraction of daylight in day
 ! daily average photosynthetically active solar radiation just below surface
           fluxi = solar*(1.0_rk-albedo)*cosz*frac
-!! VS nur kurz
+
+! convert to sfac
+          if (fluxi.gt.0.0_rk) sfac=fluxi
+! very large for polar night
+          if (fluxi.lt.0.00001_rk) sfac=0.00001_rk
+          _SET_SURFACE_DIAGNOSTIC_(self%id_sfac, sfac)
+! VS nur kurz
 !          print *, 'solar is', solar
 !          print *, 'albedo is', albedo
 !          print *, 'cosz is', cosz
@@ -96,13 +102,6 @@ contains
 !          print *, 'dayperyear is ', daysperyear
 !          print *, 'dayfrac is ', dayfrac
 !          print *, 'frac is ', frac
-!
-! convert to sfac
-          if (fluxi.gt.0.0_rk) sfac=fluxi
-! very large for polar night
-          if (fluxi.lt.0.00001_rk) sfac=0.00001_rk
-          _SET_SURFACE_DIAGNOSTIC_(self%id_sfac, sfac)
-! VS nur kurz
 !          print *, 'sfac is ', sfac
 !          flush( 6 )
           _SET_SURFACE_DIAGNOSTIC_(self%id_frac, dayfrac)

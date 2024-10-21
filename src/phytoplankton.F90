@@ -123,7 +123,13 @@ contains
 
 ! Make sure not to take up more nutrients than available.
            phygrow = MIN(limnut,phygrow0*bgc_dt)/bgc_dt
+           term1 = MIN(limnut,phygrow0*bgc_dt)
 ! VS nur kurz
+!           print *, 'TempB is ', self%TempB
+!           print *, 'bgc_theta is ', bgc_theta
+!           print *, 'ACmuphy is ', self%ACmuphy
+!           print *, 'ACik is ', self%ACik
+!           print *, 'tempscale is ', tempscale
 !           print *, 'TACmuphy is ', TACmuphy
 !           print *, 'TACik is ', TACik
 !           print *, 'ciz is ', ciz
@@ -139,6 +145,7 @@ contains
 !           print *, 'bgc_dt is ', bgc_dt
 !           print *, 'MIN(limnut, phygrow0 * bgc_dt) is ', term1
 !           print *, 'phygrow is ', phygrow
+!           print *, ' ' 
 !           flush( 6 )
 
          else !limnut < vsafe
