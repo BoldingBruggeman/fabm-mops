@@ -139,7 +139,7 @@ contains
 !      _ADD_SOURCE_(self%id_po4, topo4)
 !      _ADD_SOURCE_(self%id_dop, -remindop-denitdop)
 !      _ADD_SOURCE_(self%id_oxy, -(remindop+remindet)*ro2ut)
-!      _ADD_SOURCE_(self%id_det, -remindet-denitdet)
+      _ADD_SOURCE_(self%id_det, -remindet-denitdet)
 !! VS nur kurz
 !      print *, '-(remindet+denitdet) / sec is ', -(remindet+denitdet) / 86400.0_rk
 
