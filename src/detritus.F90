@@ -10,17 +10,18 @@ module mops_detritus
    private
 
    type, extends(type_base_model), public :: type_mops_detritus
-      type (type_dependency_id) :: id_bgc_z
+      type (type_dependency_id) :: id_bgc_z, id_bgc_dz
       type (type_bottom_dependency_id) :: id_bgc_z_bot
       type (type_state_variable_id) :: id_det
-      type (type_bottom_diagnostic_variable_id) :: id_burial
+      type (type_bottom_diagnostic_variable_id) :: id_burial, id_detdiv
 
       real(rk) :: detlambda, detwb, detmartin
       real(rk) :: burdige_fac, burdige_exp
    contains
       ! Model procedures
       procedure :: initialize
-      procedure :: get_vertical_movement
+!      procedure :: get_vertical_movement
+      procedure :: do_column
       procedure :: do_bottom
    end type type_mops_detritus
 
@@ -42,47 +43,59 @@ contains
       call self%add_to_aggregate_variable(standard_variables%total_phosphorus, self%id_det)
 
       call self%register_diagnostic_variable(self%id_burial, 'burial', 'mmol P/m2/d', 'burial')
+      call self%register_diagnostic_variable(self%id_detdiv, 'detdiv', 'mmol P/m3/d', 'divergence')
 
       ! Register environmental dependencies
       call self%register_dependency(self%id_bgc_z, standard_variables%depth)
+      call self%register_dependency(self%id_bgc_dz, standard_variablles%cell_thickness)
       call self%register_dependency(self%id_bgc_z_bot, standard_variables%bottom_depth)
 
       self%dt = 86400.0_rk
    end subroutine
 
-   subroutine get_vertical_movement(self, _ARGUMENTS_DO_)
-      class (type_mops_detritus), intent(in) :: self
-      _DECLARE_ARGUMENTS_DO_
+! VS replacing "get_vertical_movement" by "do_column"
+!    in order to calculate detritus divergence like "PETSC-MOPS" does,
+!    might want to adapt "PETSC-MOPS" later, instead
+!   subroutine get_vertical_movement(self, _ARGUMENTS_DO_)
+!      class (type_mops_detritus), intent(in) :: self
+!      _DECLARE_ARGUMENTS_DO_
+!
+!      real(rk) :: detwa, bgc_z, wdet
+!
+!      detwa = self%detlambda/self%detmartin
+!      _LOOP_BEGIN_
+!         _GET_(self%id_bgc_z, bgc_z)
+!         wdet = self%detwb + bgc_z*detwa
+!         _ADD_VERTICAL_VELOCITY_(self%id_det, -wdet)
+!      _LOOP_END_
+!   end subroutine get_vertical_movement
 
-      real(rk) :: detwa, bgc_z, wdet
+   subroutine do_column(self, _ARGUMENTS_DO_COLUMN_)
+      class (type_mops_radiation), intent(in) :: self
+      _DECLARE_ARGUMENTS_DO_COLUMN_
 
-      detwa = self%detlambda/self%detmartin
-      _LOOP_BEGIN_
-         _GET_(self%id_bgc_z, bgc_z)
-         wdet = self%detwb + bgc_z*detwa
-! VS SETTING VERTICAL_VELOCITY TO ZERO
-         !_ADD_VERTICAL_VELOCITY_(self%id_det, -wdet)
-      _LOOP_END_
-   end subroutine get_vertical_movement
+      real(rk) :: detwa, bgc_z, DET, wdet, fDET, flux_l
+
+   end subroutine
 
    subroutine do_bottom(self, _ARGUMENTS_DO_BOTTOM_)
       class (type_mops_detritus), intent(in) :: self
       _DECLARE_ARGUMENTS_DO_BOTTOM_
 
-      real(rk) :: detwa, bgc_z, DET, wdet, fDET, flux_l
+      real(rk) :: detwa, bgc_z, bgc_dz, DET, wdet, flux_u, flux_l
 
       detwa = self%detlambda/self%detmartin
-      _BOTTOM_LOOP_BEGIN_
-         _GET_BOTTOM_(self%id_bgc_z_bot, bgc_z)
+      flux_u = 0.0_rk ! VS flux through upper box layer
+      _DOWNWARD_LOOP_BEGIN_
+         _GET_(self%id_bgc_z, bgc_z)
          _GET_(self%id_det, DET)
-
-! VS nur kurz?
          DET = MAX(DET-alimit*alimit,0.0_rk)
-
          wdet = self%detwb + bgc_z*detwa
-         fDET = wdet*DET
-         flux_l = MIN(1.0_rk,self%burdige_fac*fDET**self%burdige_exp)*fDET
-         _ADD_BOTTOM_FLUX_(self%id_det, -flux_l)
+         fdet = wdet*DET
+         flux_l = fdet ! VS flux thrugh lower box layer
+         detdiv = () 
+!         flux_l = MIN(1.0_rk,self%burdige_fac*fDET**self%burdige_exp)*fDET
+         _SET_DIAGNOSTIC_(self%id_detdiv, detdiv)
 
 !         ! VS nur kurz
 !         print *, 'detwa is', detwa
@@ -91,8 +104,8 @@ contains
 !         print *, 'fDET is', fDET
 !         print *, '-flux_l is', -flux_l
 !         print *, '-flux_l / sec / layer_thickness is', -flux_l / 86400.0_rk / 50.0_rk
-         _SET_BOTTOM_DIAGNOSTIC_(self%id_burial, flux_l)
-      _BOTTOM_LOOP_END_
+          flux_u = flux_l
+      _DOWNWARD_LOOP_END_
 
    end subroutine
 
