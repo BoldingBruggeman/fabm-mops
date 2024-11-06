@@ -182,7 +182,7 @@ contains
        _SET_DIAGNOSTIC_(self%id_exu, phyexu)
        _SET_DIAGNOSTIC_(self%id_loss, phyloss)
 !       _ADD_SOURCE_(self%id_po4, -phygrow)
-!       _ADD_SOURCE_(self%id_dop, self%exutodop*phyexu + phyloss)
+       _ADD_SOURCE_(self%id_dop, self%exutodop*phyexu + phyloss)
 !       _ADD_SOURCE_(self%id_oxy, phygrow*ro2ut)
        _ADD_SOURCE_(self%id_det, (1.0_rk-self%exutodop)*phyexu)
 ! VS nur kurz
@@ -198,7 +198,7 @@ contains
        _ADD_SOURCE_(self%id_c,   -self%plambda*PHY)
 ! VS need all SMS(PHY) terms to be diagnostics for debugging:
        _SET_DIAGNOSTIC_(self%id_plambdaTimesPhy, -self%plambda*PHY)
-!       _ADD_SOURCE_(self%id_dop,  self%plambda*PHY)
+       _ADD_SOURCE_(self%id_dop,  self%plambda*PHY)
 
       _LOOP_END_
    end subroutine do

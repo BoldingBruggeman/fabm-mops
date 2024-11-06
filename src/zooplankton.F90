@@ -110,7 +110,7 @@ contains
 ! VS SETTING FLUXES TO ZERO (except for zooplankton, October 18, 2024)
         _ADD_SOURCE_(self%id_c, self%ACeff*graz-zooexu-zooloss)
 !        _ADD_SOURCE_(self%id_po4, zooexu)
-!        _ADD_SOURCE_(self%id_dop, self%graztodop*(1.0_rk-self%ACeff)*graz + self%graztodop*zooloss)
+        _ADD_SOURCE_(self%id_dop, self%graztodop*(1.0_rk-self%ACeff)*graz + self%graztodop*zooloss)
 !        _ADD_SOURCE_(self%id_oxy, -zooexu*ro2ut)
         _ADD_SOURCE_(self%id_phy, -graz)
         _ADD_SOURCE_(self%id_det, (1.0_rk-self%graztodop)*(1.0_rk-self%ACeff)*graz + (1.0_rk-self%graztodop)*zooloss)
@@ -128,7 +128,7 @@ contains
 
          ZOO = MAX(ZOO - alimit*alimit, 0.0_rk)
          _ADD_SOURCE_(self%id_c, -self%zlambda*ZOO)
-!         _ADD_SOURCE_(self%id_dop, self%zlambda*ZOO)
+         _ADD_SOURCE_(self%id_dop, self%zlambda*ZOO)
 
       _LOOP_END_
    end subroutine do

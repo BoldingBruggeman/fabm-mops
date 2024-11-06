@@ -137,7 +137,7 @@ contains
       topo4 = remindop+remindet+denitdop+denitdet
 ! VS SETTING FLUXES TO ZERO
 !      _ADD_SOURCE_(self%id_po4, topo4)
-!      _ADD_SOURCE_(self%id_dop, -remindop-denitdop)
+      _ADD_SOURCE_(self%id_dop, -remindop-denitdop)
 !      _ADD_SOURCE_(self%id_oxy, -(remindop+remindet)*ro2ut)
       _ADD_SOURCE_(self%id_det, -remindet-denitdet)
 !! VS nur kurz
