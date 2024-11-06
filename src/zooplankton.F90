@@ -109,7 +109,7 @@ contains
 ! Collect all euphotic zone fluxes in these arrays.
 ! VS SETTING FLUXES TO ZERO (except for zooplankton, October 18, 2024)
         _ADD_SOURCE_(self%id_c, self%ACeff*graz-zooexu-zooloss)
-!        _ADD_SOURCE_(self%id_po4, zooexu)
+        _ADD_SOURCE_(self%id_po4, zooexu)
         _ADD_SOURCE_(self%id_dop, self%graztodop*(1.0_rk-self%ACeff)*graz + self%graztodop*zooloss)
 !        _ADD_SOURCE_(self%id_oxy, -zooexu*ro2ut)
         _ADD_SOURCE_(self%id_phy, -graz)
@@ -120,7 +120,7 @@ contains
 !        term2 = (1.0_rk-self%graztodop)*zooloss / 86400.0_rk
 !        print *, '(1.0_rk-self%graztodop)*zooloss / sec is', term2
 
-!        _ADD_SOURCE_(self%id_din, zooexu*rnp)
+        _ADD_SOURCE_(self%id_din, zooexu*rnp)
 ! VS nur kurz
 !        print *, 'zooexu / sec is ', zooexu / 86400.0_rk
 

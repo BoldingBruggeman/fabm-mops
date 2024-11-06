@@ -181,14 +181,14 @@ contains
        _SET_DIAGNOSTIC_(self%id_grow, phygrow)
        _SET_DIAGNOSTIC_(self%id_exu, phyexu)
        _SET_DIAGNOSTIC_(self%id_loss, phyloss)
-!       _ADD_SOURCE_(self%id_po4, -phygrow)
+       _ADD_SOURCE_(self%id_po4, -phygrow)
        _ADD_SOURCE_(self%id_dop, self%exutodop*phyexu + phyloss)
 !       _ADD_SOURCE_(self%id_oxy, phygrow*ro2ut)
        _ADD_SOURCE_(self%id_det, (1.0_rk-self%exutodop)*phyexu)
 ! VS nur kurz
 !        print *, 'phyexu / sec is ', phyexu / 86400.0_rk
 
-!       _ADD_SOURCE_(self%id_din, -phygrow*rnp)
+       _ADD_SOURCE_(self%id_din, -phygrow*rnp)
 ! VS nur kurz
 !       print *, 'phygrow is ', phygrow
 
