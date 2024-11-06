@@ -53,10 +53,9 @@ contains
 ! VS nur kurz
 !        print *, 'source is ', source
 
-! VS SETTING SURFACE FLUXES TO ZERO
-!         _ADD_SURFACE_FLUX_(self%id_pho, source)
-!         _ADD_SURFACE_FLUX_(self%id_din, source*rnp)
-!         _ADD_SURFACE_FLUX_(self%id_dic, source*rcp)
+         _ADD_SURFACE_FLUX_(self%id_pho, source)
+         _ADD_SURFACE_FLUX_(self%id_din, source*rnp)
+         _ADD_SURFACE_FLUX_(self%id_dic, source*rcp)
       _SURFACE_LOOP_END_
    end subroutine
 
@@ -77,10 +76,9 @@ contains
 ! VS nur kurz
 !         print *, 'source is ', source
 
-! VS SETTING FLUXES TO ZERO
-!         _ADD_SOURCE_(self%id_pho, source)
-!         _ADD_SOURCE_(self%id_din, source*rnp)
-!         _ADD_SOURCE_(self%id_dic, source*rcp)
+         _ADD_SOURCE_(self%id_pho, source)
+         _ADD_SOURCE_(self%id_din, source*rnp)
+         _ADD_SOURCE_(self%id_dic, source*rcp)
       _LOOP_END_
    end subroutine
 
