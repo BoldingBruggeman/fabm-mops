@@ -138,7 +138,7 @@ contains
 ! VS SETTING FLUXES TO ZERO
       _ADD_SOURCE_(self%id_po4, topo4)
       _ADD_SOURCE_(self%id_dop, -remindop-denitdop)
-!      _ADD_SOURCE_(self%id_oxy, -(remindop+remindet)*ro2ut)
+      _ADD_SOURCE_(self%id_oxy, -(remindop+remindet)*ro2ut)
       _ADD_SOURCE_(self%id_det, -remindet-denitdet)
 !! VS nur kurz
 !      print *, '-(remindet+denitdet) / sec is ', -(remindet+denitdet) / 86400.0_rk
@@ -152,7 +152,7 @@ contains
 !       print *, 'denitdet is ', denitdet
 !       print *, 'rhno3ut is ', rhno3ut 
 
-!      _ADD_SOURCE_(self%id_dic, topo4*rcp)
+      _ADD_SOURCE_(self%id_dic, topo4*rcp)
       _SET_DIAGNOSTIC_(self%id_f4, remindop+remindet)
       _SET_DIAGNOSTIC_(self%id_f7, denitdop+denitdet)
 
