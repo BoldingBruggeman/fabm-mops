@@ -137,7 +137,7 @@ contains
          fDET = wdet*DET
          flux_l = MIN(1.0_rk,self%burdige_fac*fDET**self%burdige_exp)*fDET
 ! VS nur kurz removing this?
-         _ADD_BOTTOM_FLUX_(self%id_det, -flux_l)
+!         _ADD_BOTTOM_FLUX_(self%id_det, -flux_l)
 
 !         ! VS nur kurz
 !         print *, 'detwa is', detwa
