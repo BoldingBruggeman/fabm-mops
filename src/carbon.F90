@@ -86,8 +86,6 @@ contains
 
          _ADD_SURFACE_FLUX_(self%id_dic, co2gasex)
          _SET_SURFACE_DIAGNOSTIC_(self%id_gasex, co2gasex)
-! VS nur kurz
-!         print *, 'co2gasex is ', co2gasex
          _SET_SURFACE_DIAGNOSTIC_(self%id_surf_ph, surf_ph)
       _SURFACE_LOOP_END_
    end subroutine do_surface
@@ -261,14 +259,6 @@ contains
 
       co2starair = co2sol*pco2atm*atmosp ! equilibrium CO2aq in mol/m^3
       co2ex=-KWexch*(co2star - co2starair)*convert_mol_to_mmol
-!      !VS nur kurz
-!      print *, 'KWexch is ', KWexch
-!      print *, 'co2star is ', co2star
-!      print *, 'co2starair is ', co2starair
-!      print *, 'convert_mol_to_mmol ', convert_mol_to_mmol
-!      print *, 'pco2atm is ', pco2atm
-!      print *, 'atmops is ', atmosp
-!      print *, 'co2ex is ', co2ex
 
    end subroutine
 
@@ -330,8 +320,6 @@ contains
 
 ! co2* converted from mol/kg to mol/m3 
       co2s = co2s/permil
-! VS nur kurz
-!      print *, 'co2s is ', co2s
 
 ! fflocal is the solubility (computed in car_coeffs) in mol/(kg*atm)
 ! To convert to mol/(m^3*uatm), multiply ff by 1e-6*1024.5, i.e.

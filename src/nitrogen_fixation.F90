@@ -80,7 +80,6 @@ contains
              nfixation = 0.0_rk
 
           endif
-!          print *, 'nfixation is ', nfixation
 
           _SET_DIAGNOSTIC_(self%id_f6, nfixation)
           _ADD_SOURCE_(self%id_din, nfixation)

@@ -94,16 +94,6 @@ contains
 ! very large for polar night
           if (fluxi.lt.0.00001_rk) sfac=0.00001_rk
           _SET_SURFACE_DIAGNOSTIC_(self%id_sfac, sfac)
-! VS nur kurz
-!          print *, 'solar is', solar
-!          print *, 'albedo is', albedo
-!          print *, 'cosz is', cosz
-!          print *, 'Time is ', Time
-!          print *, 'dayperyear is ', daysperyear
-!          print *, 'dayfrac is ', dayfrac
-!          print *, 'frac is ', frac
-!          print *, 'sfac is ', sfac
-!          flush( 6 )
           _SET_SURFACE_DIAGNOSTIC_(self%id_frac, dayfrac)
 
 ! daylength; ensure that it lies between 0 and 1 (may be slightly

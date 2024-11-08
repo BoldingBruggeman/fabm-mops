@@ -56,13 +56,6 @@ contains
       _GET_SURFACE_(self%id_bgc_seaice,bgc_seaice)
       ciz = bgc_swr*(1.0_rk-bgc_seaice)*self%parfrac
       atten = 0
-! VS nur kurz konstantes Oberflächenlicht
-!      ciz = 100.0_rk
-
-!! VS nur kurz
-!      print *, 'bgc_swr is ', bgc_swr
-!      print *, 'bgc_seaice is ', bgc_seaice
-!      print *, 'parfrac is ', self%parfrac
 
       _DOWNWARD_LOOP_BEGIN_
          _SET_DIAGNOSTIC_(self%id_ciz,ciz)

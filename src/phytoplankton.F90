@@ -124,29 +124,6 @@ contains
 ! Make sure not to take up more nutrients than available.
            phygrow = MIN(limnut,phygrow0*bgc_dt)/bgc_dt
            term1 = MIN(limnut,phygrow0*bgc_dt)
-! VS nur kurz
-!           print *, 'TempB is ', self%TempB
-!           print *, 'bgc_theta is ', bgc_theta
-!           print *, 'ACmuphy is ', self%ACmuphy
-!           print *, 'ACik is ', self%ACik
-!           print *, 'tempscale is ', tempscale
-!           print *, 'TACmuphy is ', TACmuphy
-!           print *, 'TACik is ', TACik
-!           print *, 'ciz is ', ciz
-!           print *, 'PHY in PHY is ', PHY
-!           print *, 'ackpo4 is ', self%ACkpo4
-!           print *, 'bgc_tau is ', bgc_tau
-!           print *, 'atten is ', atten
-!           print *, 'glbygd is ', glbygd
-!           print *, 'flightlim is ', flightlim
-!           print *, 'fnutlim is ', fnutlim
-!           print *, 'limnut is ', limnut
-!           print *, 'phygrow0 is ', phygrow0
-!           print *, 'bgc_dt is ', bgc_dt
-!           print *, 'MIN(limnut, phygrow0 * bgc_dt) is ', term1
-!           print *, 'phygrow is ', phygrow
-!           print *, ' ' 
-!           flush( 6 )
 
          else !limnut < vsafe
 
@@ -185,12 +162,8 @@ contains
        _ADD_SOURCE_(self%id_dop, self%exutodop*phyexu + phyloss)
        _ADD_SOURCE_(self%id_oxy, phygrow*ro2ut)
        _ADD_SOURCE_(self%id_det, (1.0_rk-self%exutodop)*phyexu)
-! VS nur kurz
-!        print *, 'phyexu / sec is ', phyexu / 86400.0_rk
 
        _ADD_SOURCE_(self%id_din, -phygrow*rnp)
-! VS nur kurz
-!       print *, 'phygrow is ', phygrow
 
        _ADD_SOURCE_(self%id_dic, -phygrow*rcp)
 

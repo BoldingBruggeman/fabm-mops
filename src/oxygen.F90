@@ -63,9 +63,9 @@ contains
              surf_oxy,o2gasex)
          _ADD_SURFACE_FLUX_(self%id_oxy, o2gasex)
          _SET_SURFACE_DIAGNOSTIC_(self%id_o2gasex, o2gasex)
-! VS nur kurz
-!      print *, 'o2gasex is ', o2gasex
+
       _SURFACE_LOOP_END_
+
    end subroutine do_surface
 
    SUBROUTINE O2_SURFFORCING(vgas660,atmosp,ttemp,stemp,soxy,o2ex)

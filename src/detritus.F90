@@ -96,15 +96,6 @@ contains
          detdiv = (flux_u-flux_l)/bgc_dz  ! divergence
          _SET_DIAGNOSTIC_(self%id_detdiv, detdiv)
          _ADD_SOURCE_(self%id_det, detdiv)
-
-!         ! VS nur kurz
-!         print *, 'detwa is', detwa
-!         print *, 'wdet is', wdet
-!         print *, 'DET is', DET
-!         print *, 'fDET is', fDET
-!         print *, '-flux_l is', -flux_l
-!         print *, '-flux_l / sec / layer_thickness is', -flux_l / 86400.0_rk / 50.0_rk
-!         print *, 'detdiv is', detdiv
          flux_u = flux_l ! VS outgoing flux is incoming flux of the box below
       _DOWNWARD_LOOP_END_
       _MOVE_TO_BOTTOM_
@@ -112,11 +103,6 @@ contains
       detdiv_bottom = (flux_u_bottom-flux_l)/bgc_dz  ! VS divergence at bottom box
       _SET_DIAGNOSTIC_(self%id_detdiv, detdiv_bottom)
       _ADD_SOURCE_(self%id_det, detdiv_bottom-detdiv) ! VS correcting the former one ???
-!      _ADD_SOURCE_(self%id_det, detdiv_bottom) ! VS overwriting the former one ???
-
-!         ! VS nur kurz
-!      print *, 'corrected -flux_l is', -flux_l
-!      print *, 'corrected detdiv is', detdiv_bottom
    end subroutine
 
    subroutine do_bottom(self, _ARGUMENTS_DO_BOTTOM_)
@@ -130,22 +116,12 @@ contains
          _GET_BOTTOM_(self%id_bgc_z_bot, bgc_z)
          _GET_(self%id_det, DET)
 
-! VS nur kurz?
          DET = MAX(DET-alimit*alimit,0.0_rk)
 
          wdet = self%detwb + bgc_z*detwa
          fDET = wdet*DET
          flux_l = MIN(1.0_rk,self%burdige_fac*fDET**self%burdige_exp)*fDET
-! VS nur kurz removing this?
-!         _ADD_BOTTOM_FLUX_(self%id_det, -flux_l)
 
-!         ! VS nur kurz
-!         print *, 'detwa is', detwa
-!         print *, 'wdet is', wdet
-!         print *, 'DET is', DET
-!         print *, 'fDET is', fDET
-!         print *, '-flux_l is', -flux_l
-!         print *, '-flux_l / sec / layer_thickness is', -flux_l / 86400.0_rk / 50.0_rk
          _SET_BOTTOM_DIAGNOSTIC_(self%id_burial, flux_l)
       _BOTTOM_LOOP_END_
 

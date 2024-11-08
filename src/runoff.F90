@@ -45,14 +45,9 @@ contains
       real(rk) :: source
 
       if (self%whole_column) return ! VS exit (apply "do") if whole_column is true
-! VS nur kurz
-!        print *, 'runoff do_surface says hello'
 
       _SURFACE_LOOP_BEGIN_
          _GET_HORIZONTAL_(self%id_source, source)
-! VS nur kurz
-!        print *, 'source is ', source
-
          _ADD_SURFACE_FLUX_(self%id_pho, source)
          _ADD_SURFACE_FLUX_(self%id_din, source*rnp)
          _ADD_SURFACE_FLUX_(self%id_dic, source*rcp)
@@ -66,16 +61,11 @@ contains
       real(rk) :: source, bottom_depth
 
       if (.not. self%whole_column) return ! VS exit (apply "do_surface") if whole_column is false
-! VS nur kurz
-!        print *, 'runoff do says hello'
 
       _LOOP_BEGIN_
          _GET_HORIZONTAL_(self%id_source, source)
          _GET_BOTTOM_(self%id_bottom_depth, bottom_depth)
          source = source / bottom_depth
-! VS nur kurz
-!         print *, 'source is ', source
-
          _ADD_SOURCE_(self%id_pho, source)
          _ADD_SOURCE_(self%id_din, source*rnp)
          _ADD_SOURCE_(self%id_dic, source*rcp)
