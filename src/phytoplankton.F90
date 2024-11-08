@@ -42,9 +42,9 @@ contains
       call self%get_parameter(self%AComni, 'AComni', 'm3/(mmol P * day)','density dependent loss rate', default=0.0_rk) 
       call self%get_parameter(self%plambda, 'plambda', '1/d','mortality', default=0.01_rk) 
 
-! VS nur kurz without minimum value to avoid clipping in TMM implementation
+! VS without minimum value to avoid clipping in TMM implementation
 ! (see Jorns mail on October 16, 2024)
-      call self%register_state_variable(self%id_c, 'c', 'mmol P/m3', 'concentration')!, minimum=0.0_rk)
+      call self%register_state_variable(self%id_c, 'c', 'mmol P/m3', 'concentration')
 
       call self%register_diagnostic_variable(self%id_f1, 'f1', 'mmol P/m3/d', 'growth rate')
       call self%register_diagnostic_variable(self%id_chl, 'chl', 'mg/m3/d', 'chlorophyll')
@@ -152,12 +152,10 @@ contains
        _SET_DIAGNOSTIC_(self%id_chl, 50._rk * PHY)
 
 ! Collect all euphotic zone fluxes in these arrays.
-! VS SETTING FLUXES TO ZERO UNDONE
        _ADD_SOURCE_(self%id_c,   phygrow-phyexu-phyloss)
-! VS need all SMS(PHY) terms to be diagnostics for debugging:
-       _SET_DIAGNOSTIC_(self%id_grow, phygrow)
-       _SET_DIAGNOSTIC_(self%id_exu, phyexu)
-       _SET_DIAGNOSTIC_(self%id_loss, phyloss)
+!       _SET_DIAGNOSTIC_(self%id_grow, phygrow)
+!       _SET_DIAGNOSTIC_(self%id_exu, phyexu)
+!       _SET_DIAGNOSTIC_(self%id_loss, phyloss)
        _ADD_SOURCE_(self%id_po4, -phygrow)
        _ADD_SOURCE_(self%id_dop, self%exutodop*phyexu + phyloss)
        _ADD_SOURCE_(self%id_oxy, phygrow*ro2ut)
@@ -169,7 +167,6 @@ contains
 
        PHY = MAX(PHY - alimit*alimit, 0.0_rk)
        _ADD_SOURCE_(self%id_c,   -self%plambda*PHY)
-! VS need all SMS(PHY) terms to be diagnostics for debugging:
        _SET_DIAGNOSTIC_(self%id_plambdaTimesPhy, -self%plambda*PHY)
        _ADD_SOURCE_(self%id_dop,  self%plambda*PHY)
 

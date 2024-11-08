@@ -54,7 +54,8 @@ contains
          _GET_SURFACE_(self%id_bgc_wind, bgc_wind)
          _GET_SURFACE_(self%id_bgc_seaice, bgc_seaice)
 
-! VS nur kurz? (using bar instead of atm)
+! VS using bar instead of atm
+!    might need to change it vice versa in "PETSc-MOPS"
 !         bgc_atmosp = bgc_atmosp / 101325.0_rk   ! from Pa to atm
          bgc_atmosp = bgc_atmosp / 100000.0_rk   ! from Pa to bar
 

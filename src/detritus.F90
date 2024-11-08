@@ -21,7 +21,6 @@ module mops_detritus
    contains
       ! Model procedures
       procedure :: initialize
-!      procedure :: get_vertical_movement
       procedure :: do_column
       procedure :: do_bottom
    end type type_mops_detritus
@@ -38,9 +37,9 @@ contains
       call self%get_parameter(self%burdige_fac, 'burdige_fac', '-','factor for sediment burial (see Kriest and Oschlies, 2013)', default=1.6828_rk)
       call self%get_parameter(self%burdige_exp, 'burdige_exp', '-','exponent for sediment burial (see Kriest and Oschlies, 2013)', default=0.799_rk)
 
-! VS nur kurz without minimum value to avoid clipping in TMM implementation
+! VS without minimum value to avoid clipping in TMM implementation
 ! (see Jorns mail on October 16, 2024)
-      call self%register_state_variable(self%id_det, 'c', 'mmol P/m3', 'detritus')!, minimum=0.0_rk)
+      call self%register_state_variable(self%id_det, 'c', 'mmol P/m3', 'detritus')
       call self%add_to_aggregate_variable(standard_variables%total_phosphorus, self%id_det)
 
       call self%register_diagnostic_variable(self%id_detdiv, 'detdiv', 'mmol P/m3/d', 'divergence', source=source_do_column)
@@ -57,24 +56,6 @@ contains
       !    in subroutine do_column (default is subroutine do)
       self%id_det%sms%link%target%source = source_do_column
    end subroutine
-
-! VS replacing "get_vertical_movement" by "do_column"
-!    in order to calculate detritus divergence like "PETSC-MOPS" does,
-!    might want to adapt "PETSC-MOPS" later, instead
-!
-!   subroutine get_vertical_movement(self, _ARGUMENTS_DO_)
-!      class (type_mops_detritus), intent(in) :: self
-!      _DECLARE_ARGUMENTS_DO_
-!
-!      real(rk) :: detwa, bgc_z, wdet
-!
-!      detwa = self%detlambda/self%detmartin
-!      _LOOP_BEGIN_
-!         _GET_(self%id_bgc_z, bgc_z)
-!         wdet = self%detwb + bgc_z*detwa
-!         _ADD_VERTICAL_VELOCITY_(self%id_det, -wdet)
-!      _LOOP_END_
-!   end subroutine get_vertical_movement
 
    subroutine do_column(self, _ARGUMENTS_DO_COLUMN_)
       class (type_mops_detritus), intent(in) :: self
@@ -102,7 +83,7 @@ contains
       flux_l = MIN(1.0_rk,self%burdige_fac*fDET**self%burdige_exp)*fDET ! VS flux through bottom layer
       detdiv_bottom = (flux_u_bottom-flux_l)/bgc_dz  ! VS divergence at bottom box
       _SET_DIAGNOSTIC_(self%id_detdiv, detdiv_bottom)
-      _ADD_SOURCE_(self%id_det, detdiv_bottom-detdiv) ! VS correcting the former one ???
+      _ADD_SOURCE_(self%id_det, detdiv_bottom-detdiv) ! VS correcting the former one
    end subroutine
 
    subroutine do_bottom(self, _ARGUMENTS_DO_BOTTOM_)

@@ -59,8 +59,8 @@ contains
 
       _DOWNWARD_LOOP_BEGIN_
          _SET_DIAGNOSTIC_(self%id_ciz,ciz)
-! VS nur kurz diagnostic for atten for debugging
-         _SET_DIAGNOSTIC_(self%id_atten,atten)
+! VS diagnostic for atten for debugging
+!         _SET_DIAGNOSTIC_(self%id_atten,atten)
          _GET_(self%id_bgc_dz,bgc_dz)     ! Layer height (m)
          _GET_(self%id_att,att)           ! Attenuation by water and phytoplankton combined (1/m)
          atten = att*bgc_dz
