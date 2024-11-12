@@ -85,14 +85,6 @@ contains
           frac = dayhrs/3.1416_rk               !fraction of daylight in day
 ! daily average photosynthetically active solar radiation just below surface
           fluxi = solar*(1.0_rk-albedo)*cosz*frac
-!! VS nur kurz
-!          print *, 'solar is', solar
-!          print *, 'albedo is', albedo
-!          print *, 'cosz is', cosz
-          print *, 'YC is', YC
-          print *, 'Time is', Time
-          print *, 'frac is', frac
-!
 ! convert to sfac
           if (fluxi.gt.0.0_rk) sfac=fluxi
 ! very large for polar night

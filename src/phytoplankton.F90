@@ -144,17 +144,17 @@ contains
        _SET_DIAGNOSTIC_(self%id_chl, 50._rk * PHY)
 
 ! Collect all euphotic zone fluxes in these arrays.
-        _ADD_SOURCE_(self%id_c,   phygrow-phyexu-phyloss)
-        _ADD_SOURCE_(self%id_po4, -phygrow)
-        _ADD_SOURCE_(self%id_dop, self%exutodop*phyexu + phyloss)
-        _ADD_SOURCE_(self%id_oxy, phygrow*ro2ut)
-        _ADD_SOURCE_(self%id_det, (1.0_rk-self%exutodop)*phyexu)
-        _ADD_SOURCE_(self%id_din, -phygrow*rnp)
-        _ADD_SOURCE_(self%id_dic, -phygrow*rcp)
+       _ADD_SOURCE_(self%id_c,   phygrow-phyexu-phyloss)
+       _ADD_SOURCE_(self%id_po4, -phygrow)
+       _ADD_SOURCE_(self%id_dop, self%exutodop*phyexu + phyloss)
+       _ADD_SOURCE_(self%id_oxy, phygrow*ro2ut)
+       _ADD_SOURCE_(self%id_det, (1.0_rk-self%exutodop)*phyexu)
+       _ADD_SOURCE_(self%id_din, -phygrow*rnp)
+       _ADD_SOURCE_(self%id_dic, -phygrow*rcp)
 
-         PHY = MAX(PHY - alimit*alimit, 0.0_rk)
-         _ADD_SOURCE_(self%id_c,   -self%plambda*PHY)
-         _ADD_SOURCE_(self%id_dop,  self%plambda*PHY)
+       PHY = MAX(PHY - alimit*alimit, 0.0_rk)
+       _ADD_SOURCE_(self%id_c,   -self%plambda*PHY)
+       _ADD_SOURCE_(self%id_dop,  self%plambda*PHY)
 
       _LOOP_END_
    end subroutine do
