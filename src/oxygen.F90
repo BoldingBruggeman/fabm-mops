@@ -54,10 +54,8 @@ contains
          _GET_SURFACE_(self%id_bgc_wind, bgc_wind)
          _GET_SURFACE_(self%id_bgc_seaice, bgc_seaice)
 
-! VS using bar instead of atm
-!    might need to change it vice versa in "PETSc-MOPS"
-!         bgc_atmosp = bgc_atmosp / 101325.0_rk   ! from Pa to atm
-         bgc_atmosp = bgc_atmosp / 100000.0_rk   ! from Pa to bar
+! convert from Pa to atm (requires to convert to Pa in python runscript)
+         bgc_atmosp = bgc_atmosp / 101325.0_rk
 
          vgas660=(0.337_rk*bgc_wind**2)*0.24_rk*(1.0_rk-bgc_seaice)
          CALL O2_SURFFORCING(vgas660,bgc_atmosp,bgc_theta,bgc_salt, &
