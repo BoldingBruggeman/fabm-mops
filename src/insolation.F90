@@ -46,7 +46,8 @@ contains
 ! time                 :: current time
        real(rk) :: time,Yc
 !      VS temporarly fix wired 360.0_rk in order to match "PETSc-MOPS" simulation
-!       real(rk) :: daysperyear = 365.2425_rk
+!         (later by scalar dependency, cf.  mail by Jorn, October 16, 2024)
+!       real(rk) :: daysperyear = 365.2425_rk 
        real(rk) :: daysperyear = 360.0_rk
 
 ! !LOCAL VARIABLES: ====================================================
