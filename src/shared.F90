@@ -10,7 +10,8 @@ module mops_shared
 ! (experiment OBS_NARR, Kriest et al., 2017)
 ! can I rather set this value in my "*.yaml" file, too ...?
    real(rk), parameter :: rhno3ut = 0.8_rk*ro2ut - rnp ! -HNO3:P ratio for denitrification
-   real(rk), parameter :: bgc_dt = 1.0_rk      !max BGC timestep (d)
+!   real(rk), parameter :: bgc_dt = 0.0625_rk   !VS this is correct for 90 minute bgc steps
+   real(rk), parameter :: bgc_dt = 0.5_rk   !VS this is correct for 12 hour bgc steps
    real(rk), parameter :: convert_mol_to_mmol=1000.0_rk
    real(rk), parameter :: rho0=1024.5_rk
    real(rk), parameter :: permil=1.0_rk/rho0

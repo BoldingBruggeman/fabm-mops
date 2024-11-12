@@ -53,6 +53,7 @@ contains
       _GET_SURFACE_(self%id_bgc_swr,bgc_swr)
       _GET_SURFACE_(self%id_bgc_seaice,bgc_seaice)
       ciz = bgc_swr*(1.0_rk-bgc_seaice)*self%parfrac
+
       _DOWNWARD_LOOP_BEGIN_
          _SET_DIAGNOSTIC_(self%id_ciz,ciz)
          _GET_(self%id_bgc_dz,bgc_dz)     ! Layer height (m)

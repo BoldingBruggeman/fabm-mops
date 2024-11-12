@@ -11,8 +11,9 @@ module mops_zooplankton
 
    type, extends(type_base_model), public :: type_mops_zooplankton
       type (type_state_variable_id) :: id_c, id_phy, id_po4, id_din, id_oxy, id_det, id_dop, id_dic
+      type (type_diagnostic_variable_id) :: id_f2
       ! VS: introducing id_det_prod_zoo (see below)
-      type (type_diagnostic_variable_id) :: id_f2, id_det_prod_zoo
+      type (type_diagnostic_variable_id) :: id_det_prod_zoo
 
       real(rk) :: ACmuzoo, ACkphy, AClambdaz, AComniz, ACeff, graztodop, zlambda
    contains
@@ -35,7 +36,9 @@ contains
       call self%get_parameter(self%AComniz, 'AComniz', 'm3/(mmol P * day)','density dependent loss rate', default=4.548_rk)
       call self%get_parameter(self%zlambda, 'zlambda', '1/d','mortality', default=0.01_rk)
 
-      call self%register_state_variable(self%id_c, 'c', 'mmol P/m3', 'concentration', minimum=0.0_rk)
+! VS nur kurz without minimum value to avoid clipping in TMM implementation
+! (see Jorns mail on October 16, 2024)
+      call self%register_state_variable(self%id_c, 'c', 'mmol P/m3', 'concentration') !, minimum=0.0_rk)
 
       call self%register_diagnostic_variable(self%id_f2, 'f2', 'mmol P/m3/d', 'grazing')
       ! VS introducing detritus production by zooplankton as diagnostic variable
@@ -74,11 +77,9 @@ contains
          if(PHY.gt.0.0_rk) then
 
 ! Grazing of zooplankton, Holling III
-           graz0=self%ACmuzoo*PHY*PHY/(self%ACkphy*self%ACkphy+PHY*PHY)*ZOO
-
+           graz0=((self%ACmuzoo*(PHY*PHY))/(self%ACkphy*self%ACkphy+PHY*PHY))*ZOO
 ! Make sure not to graze more phytoplankton than available.
            graz = MIN(PHY,graz0*bgc_dt)/bgc_dt
-
          else !PHY < 0
 
            graz=0.0_rk
@@ -110,6 +111,7 @@ contains
         _ADD_SOURCE_(self%id_oxy, -zooexu*ro2ut)
         _ADD_SOURCE_(self%id_phy, -graz)
         _ADD_SOURCE_(self%id_det, (1.0_rk-self%graztodop)*(1.0_rk-self%ACeff)*graz + (1.0_rk-self%graztodop)*zooloss)
+
         _ADD_SOURCE_(self%id_din, zooexu*rnp)
         _ADD_SOURCE_(self%id_dic, zooexu*rcp)
 

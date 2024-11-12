@@ -13,13 +13,17 @@ module mops_detritus
 
    type, extends(type_base_model), public :: type_mops_detritus
       type (type_dependency_id) :: id_bgc_z
-      type (type_dependency_id) :: id_bgc_dz ! VS for CaCO3 divergence
+      type (type_dependency_id) :: id_bgc_dz ! VS for det and CaCO3 divergences
+      type (type_bottom_dependency_id) :: id_bgc_z_bot 
       type (type_dependency_id) :: id_det_prod ! VS for CaCO3 divergence
       type (type_horizontal_dependency_id) :: id_int_det_prod ! VS for CaCO3 divergence
       type (type_bottom_dependency_id) :: id_bgc_z_bot
-      type (type_state_variable_id) :: id_det, id_dic, id_alk
+      type (type_state_variable_id) :: id_det
+      type (type_state_variable_id) :: id_dic
+      type (type_state_variable_id) :: id_alk
+      type (type_diagnostic_variable_id) :: id_detdiv
       type (type_diagnostic_variable_id) :: id_f9 ! VS CaCO3 production
-      type (type_diagnostic_variable_id) :: id_fdiv_caco3 ! (f8) VS CaCO3 divergence
+      type (type_diagnostic_variable_id) :: id_fdiv_caco3 ! VS CaCO3 divergence
       type (type_dependency_id) :: id_fdiv_caco3_in ! an immediate dependency of the former
       type (type_bottom_diagnostic_variable_id) :: id_burial
 
@@ -30,9 +34,7 @@ module mops_detritus
    contains
       ! Model procedures
       procedure :: initialize
-      procedure :: get_vertical_movement
-      procedure :: do_column ! VS to calculate CaCO3 divergence
-!      procedure :: do ! VS few extra stuff can be done in do_column, too
+      procedure :: do_column ! VS to calculate divergence of detritus and CaCO3
       procedure :: do_bottom
    end type type_mops_detritus
 
@@ -41,13 +43,6 @@ contains
    subroutine initialize(self, configunit)
       class (type_mops_detritus), intent(inout), target :: self
       integer,                    intent(in)            :: configunit
-
-      ! VS borrowed the following line from fabm-pisces in conjunction with the
-      !    self%id_xxx%sms%link%target%source=source_do_column commands below.
-      !    The following line seems not necessary to force the code
-      !    to apply our _ADD_SOURCE_ commands in subroutine do_column
-      !    but causes slighly different results
-!      call self%register_implemented_routines((/source_do_column/))
 
       call self%get_parameter(self%detlambda, 'detlambda', '1/d','detritus remineralization rate', default=0.05_rk)
       call self%get_parameter(self%detwb, 'detwb', 'm/d','offset for detritus sinking', default=0.0_rk)
@@ -59,12 +54,15 @@ contains
       ! VS Parameter $l_\mathrm{CaCO3}$ in Cien et al., 2022
       call self%get_parameter(self%length_caco3, 'length_caco3', 'm','lenght scale for the e-fold function of dissolving CaCO3', default=4289.4_rk)
 
-      call self%register_state_variable(self%id_det, 'c', 'mmol P/m3', 'detritus', minimum=0.0_rk)
+      ! VS detritus without minimum value to avoid clipping in TMM implementation
+      ! (see Jorns mail on October 16, 2024)
+      call self%register_state_variable(self%id_det, 'c', 'mmol P/m3', 'detritus')
       call self%register_state_variable(self%id_alk, 'alk', 'mmol Alk/m3', 'alkalinity')
       call self%register_state_dependency(self%id_dic, 'dic', 'mmol C/m3', 'dissolved inorganic carbon')
 
       call self%add_to_aggregate_variable(standard_variables%total_phosphorus, self%id_det)
 
+      call self%register_diagnostic_variable(self%id_detdiv, 'detdiv', 'mmol P/m3/d', 'divergence', source=source_do_column)
       call self%register_diagnostic_variable(self%id_burial, 'burial', 'mmol P/m2/d', 'burial')
       ! VS diagnostic variable f9
       call self%register_diagnostic_variable(self%id_f9, 'f9', &
@@ -93,29 +91,37 @@ contains
       !    work in subroutine do_column (default is subroutine do)
       self%id_alk%sms%link%target%source = source_do_column
       self%id_dic%sms%link%target%source = source_do_column
-
-!      ! VS only for short, open detritus.log for writing:
-!      open(unit=self%file_unit, file="detritus.log", status='replace', action='write', iostat=self%ierr)
-!      if (self%ierr /= 0) then
-!         print *, "Error opening file"
-!         stop
-!      end if
-!      write(self%file_unit, '(A)') "Hello World, I initialized detritus.F90" ! VS only for short
+      self%id_det%sms%link%target%source = source_do_column
    end subroutine
 
-   subroutine get_vertical_movement(self, _ARGUMENTS_DO_)
+   subroutine do_column(self, _ARGUMENTS_DO_COLUMN_)
       class (type_mops_detritus), intent(in) :: self
-      _DECLARE_ARGUMENTS_DO_
+      _DECLARE_ARGUMENTS_DO_COLUMN_
 
-      real(rk) :: detwa, bgc_z, wdet
+      real(rk) :: detwa, bgc_z, bgc_dz, DET, wdet, fdet, flux_u, flux_l, flux_u_bottom, detdiv, detdiv_bottom
 
       detwa = self%detlambda/self%detmartin
-      _LOOP_BEGIN_
+      flux_u = 0.0_rk ! VS flux through upper box layer
+      _DOWNWARD_LOOP_BEGIN_
+         flux_u_bottom = flux_u
          _GET_(self%id_bgc_z, bgc_z)
+         _GET_(self%id_bgc_dz, bgc_dz)
+         _GET_(self%id_det, DET)
+         DET = MAX(DET-alimit*alimit,0.0_rk)
          wdet = self%detwb + bgc_z*detwa
-         _ADD_VERTICAL_VELOCITY_(self%id_det, -wdet)
-      _LOOP_END_
-   end subroutine get_vertical_movement
+         fdet = wdet*DET
+         flux_l = fdet ! VS flux through lower box layer
+         detdiv = (flux_u-flux_l)/bgc_dz  ! divergence
+         _SET_DIAGNOSTIC_(self%id_detdiv, detdiv)
+         _ADD_SOURCE_(self%id_det, detdiv)
+         flux_u = flux_l ! VS outgoing flux is incoming flux of the box below
+      _DOWNWARD_LOOP_END_
+      _MOVE_TO_BOTTOM_
+      flux_l = MIN(1.0_rk,self%burdige_fac*fDET**self%burdige_exp)*fDET ! VS flux through bottom layer
+      detdiv_bottom = (flux_u_bottom-flux_l)/bgc_dz  ! VS divergence at bottom box
+      _SET_DIAGNOSTIC_(self%id_detdiv, detdiv_bottom)
+      _ADD_SOURCE_(self%id_det, detdiv_bottom-detdiv) ! VS correcting the former one
+   end subroutine
 
    subroutine do_column(self, _ARGUMENTS_DO_COLUMN_)
       class (type_mops_detritus), intent(in) :: self
@@ -196,13 +202,12 @@ contains
          _GET_BOTTOM_(self%id_bgc_z_bot, bgc_z)
          _GET_(self%id_det, DET)
 
-! VS nur kurz?
          DET = MAX(DET-alimit*alimit,0.0_rk)
 
          wdet = self%detwb + bgc_z*detwa
          fDET = wdet*DET
          flux_l = MIN(1.0_rk,self%burdige_fac*fDET**self%burdige_exp)*fDET
-         _ADD_BOTTOM_FLUX_(self%id_det, -flux_l)
+
          _SET_BOTTOM_DIAGNOSTIC_(self%id_burial, flux_l)
       _BOTTOM_LOOP_END_
    end subroutine

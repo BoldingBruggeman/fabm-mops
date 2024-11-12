@@ -74,7 +74,9 @@ contains
          _GET_SURFACE_(self%id_pco2atm, pco2atm)
          _GET_SURFACE_(self%id_surf_ph_in, surf_ph)
 
-         bgc_atmosp = bgc_atmosp / 101325.0_rk   ! from Pa to atm
+! convert from Pa to atm (requires to convert to Pa in python runscript)
+         bgc_atmosp = bgc_atmosp / 101325.0_rk
+
    ! Surface total alkalinity from the OCMIP protocol
          surf_alk = self%ocmip_alkfac*bgc_salt
 

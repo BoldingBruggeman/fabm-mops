@@ -44,7 +44,7 @@ contains
 
       real(rk) :: source
 
-      if (self%whole_column) return
+      if (self%whole_column) return ! VS exit (apply "do") if whole_column is true
 
       _SURFACE_LOOP_BEGIN_
          _GET_HORIZONTAL_(self%id_source, source)
@@ -60,7 +60,7 @@ contains
 
       real(rk) :: source, bottom_depth
 
-      if (.not. self%whole_column) return
+      if (.not. self%whole_column) return ! VS exit (apply "do_surface") if whole_column is false
 
       _LOOP_BEGIN_
          _GET_HORIZONTAL_(self%id_source, source)
