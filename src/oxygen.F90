@@ -12,6 +12,7 @@ module mops_oxygen
       type (type_dependency_id) :: id_bgc_theta, id_bgc_salt
       type (type_surface_dependency_id) :: id_bgc_atmosp, id_bgc_wind, id_bgc_seaice
       type (type_state_variable_id) :: id_oxy
+      type (type_surface_diagnostic_variable_id) :: id_o2gasex
    contains
       ! Model procedures
       procedure :: initialize
@@ -24,8 +25,10 @@ contains
       class (type_mops_oxygen), intent(inout), target :: self
       integer,                  intent(in)            :: configunit
 
-      ! Register diagnostic variables
       call self%register_state_variable(self%id_oxy, 'c', 'mmol O2/m3', 'concentration')
+
+      ! Register diagnostic variables
+      call self%register_diagnostic_variable(self%id_o2gasex, 'o2gasex', 'mmol C/m2/d', 'air-sea exchange of O2')
 
       ! Register environmental dependencies
       call self%register_dependency(self%id_bgc_theta, standard_variables%temperature)
@@ -51,15 +54,17 @@ contains
          _GET_SURFACE_(self%id_bgc_wind, bgc_wind)
          _GET_SURFACE_(self%id_bgc_seaice, bgc_seaice)
 
-! VS nur kurz? (using bar instead of atm?)
-!         bgc_atmosp = bgc_atmosp / 101325.0_rk   ! from Pa to atm
-         bgc_atmosp = bgc_atmosp / 100000.0_rk   ! from Pa to bar
+! convert from Pa to atm (requires to convert to Pa in python runscript)
+         bgc_atmosp = bgc_atmosp / 101325.0_rk
 
          vgas660=(0.337_rk*bgc_wind**2)*0.24_rk*(1.0_rk-bgc_seaice)
          CALL O2_SURFFORCING(vgas660,bgc_atmosp,bgc_theta,bgc_salt, &
              surf_oxy,o2gasex)
          _ADD_SURFACE_FLUX_(self%id_oxy, o2gasex)
+         _SET_SURFACE_DIAGNOSTIC_(self%id_o2gasex, o2gasex)
+
       _SURFACE_LOOP_END_
+
    end subroutine do_surface
 
    SUBROUTINE O2_SURFFORCING(vgas660,atmosp,ttemp,stemp,soxy,o2ex)

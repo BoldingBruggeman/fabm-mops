@@ -42,7 +42,9 @@ contains
       call self%get_parameter(self%AComni, 'AComni', 'm3/(mmol P * day)','density dependent loss rate', default=0.0_rk) 
       call self%get_parameter(self%plambda, 'plambda', '1/d','mortality', default=0.01_rk) 
 
-      call self%register_state_variable(self%id_c, 'c', 'mmol P/m3', 'concentration', minimum=0.0_rk)
+! VS without minimum value to avoid clipping in TMM implementation
+! (see Jorns mail on October 16, 2024)
+      call self%register_state_variable(self%id_c, 'c', 'mmol P/m3', 'concentration')
 
       call self%register_diagnostic_variable(self%id_f1, 'f1', 'mmol P/m3/d', 'growth rate')
       call self%register_diagnostic_variable(self%id_chl, 'chl', 'mg/m3/d', 'chlorophyll')
@@ -73,7 +75,7 @@ contains
       _DECLARE_ARGUMENTS_DO_
 
       real(rk) :: bgc_theta, bgc_dz, ciz, bgc_tau, att, PO4, DIN, PHY
-      real(rk) :: tempscale, TACmuphy, TACik, atten, glbygd, flightlim, limnut, fnutlim, phygrow0, phygrow, phyexu, phyloss
+      real(rk) :: tempscale, TACmuphy, TACik, atten, glbygd, flightlim, limnut, fnutlim, phygrow0, phygrow, phyexu, phyloss, term1
 
       _LOOP_BEGIN_
 
@@ -109,7 +111,7 @@ contains
          if(limnut.gt.vsafe) then
 
 ! The nutrient limitation of phytoplankton
-           fnutlim = limnut/(self%ackpo4+limnut)
+           fnutlim = limnut/(self%ACkpo4+limnut)
 
 ! The growth rate of phytoplankton: light*nutrient limitation.
            phygrow0 = TACmuphy*PHY*MIN(flightlim,fnutlim)
@@ -119,7 +121,7 @@ contains
 
          else !limnut < vsafe
 
-           phygrow=0.0_rk
+           phygrow = 0.0_rk
 
          endif !limnut
 
@@ -151,12 +153,12 @@ contains
        _ADD_SOURCE_(self%id_det, (1.0_rk-self%exutodop)*phyexu)
        _ADD_SOURCE_(self%id_din, -phygrow*rnp)
        _ADD_SOURCE_(self%id_dic, -phygrow*rcp)
-
        PHY = MAX(PHY - alimit*alimit, 0.0_rk)
        _ADD_SOURCE_(self%id_c,   -self%plambda*PHY)
        _ADD_SOURCE_(self%id_dop,  self%plambda*PHY)
 
-      _LOOP_END_
+       _LOOP_END_
+
    end subroutine do
 
    elemental real(rk) FUNCTION phi(u)

@@ -82,7 +82,7 @@ contains
           endif
 
           _SET_DIAGNOSTIC_(self%id_f6, nfixation)
-           _ADD_SOURCE_(self%id_din, nfixation)
+          _ADD_SOURCE_(self%id_din, nfixation)
 
       _LOOP_END_
    end subroutine do
