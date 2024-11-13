@@ -12,16 +12,15 @@ module mops_detritus
    private
 
    type, extends(type_base_model), public :: type_mops_detritus
-      type (type_dependency_id) :: id_bgc_z
-      type (type_dependency_id) :: id_bgc_dz ! VS for det and CaCO3 divergences
-      type (type_bottom_dependency_id) :: id_bgc_z_bot 
-      type (type_dependency_id) :: id_det_prod ! VS for CaCO3 divergence
-      type (type_horizontal_dependency_id) :: id_int_det_prod ! VS for CaCO3 divergence
-      type (type_bottom_dependency_id) :: id_bgc_z_bot
       type (type_state_variable_id) :: id_det
       type (type_state_variable_id) :: id_dic
       type (type_state_variable_id) :: id_alk
-      type (type_diagnostic_variable_id) :: id_detdiv
+      type (type_dependency_id) :: id_bgc_z
+      type (type_dependency_id) :: id_bgc_dz
+      type (type_bottom_dependency_id) :: id_bgc_z_bot 
+      type (type_dependency_id) :: id_det_prod ! VS for CaCO3 divergence
+      type (type_horizontal_dependency_id) :: id_int_det_prod ! VS for CaCO3 divergence
+      type (type_diagnostic_variable_id) :: id_fdiv_det ! VS detritus divergence
       type (type_diagnostic_variable_id) :: id_f9 ! VS CaCO3 production
       type (type_diagnostic_variable_id) :: id_fdiv_caco3 ! VS CaCO3 divergence
       type (type_dependency_id) :: id_fdiv_caco3_in ! an immediate dependency of the former
@@ -62,7 +61,7 @@ contains
 
       call self%add_to_aggregate_variable(standard_variables%total_phosphorus, self%id_det)
 
-      call self%register_diagnostic_variable(self%id_detdiv, 'detdiv', 'mmol P/m3/d', 'divergence', source=source_do_column)
+      call self%register_diagnostic_variable(self%id_fdiv_det, 'fdiv_det', 'mmol P/m3/d', 'divergence', source=source_do_column)
       call self%register_diagnostic_variable(self%id_burial, 'burial', 'mmol P/m2/d', 'burial')
       ! VS diagnostic variable f9
       call self%register_diagnostic_variable(self%id_f9, 'f9', &
@@ -98,104 +97,61 @@ contains
       class (type_mops_detritus), intent(in) :: self
       _DECLARE_ARGUMENTS_DO_COLUMN_
 
-      real(rk) :: detwa, bgc_z, bgc_dz, DET, wdet, fdet, flux_u, flux_l, flux_u_bottom, detdiv, detdiv_bottom
-
-      detwa = self%detlambda/self%detmartin
-      flux_u = 0.0_rk ! VS flux through upper box layer
-      _DOWNWARD_LOOP_BEGIN_
-         flux_u_bottom = flux_u
-         _GET_(self%id_bgc_z, bgc_z)
-         _GET_(self%id_bgc_dz, bgc_dz)
-         _GET_(self%id_det, DET)
-         DET = MAX(DET-alimit*alimit,0.0_rk)
-         wdet = self%detwb + bgc_z*detwa
-         fdet = wdet*DET
-         flux_l = fdet ! VS flux through lower box layer
-         detdiv = (flux_u-flux_l)/bgc_dz  ! divergence
-         _SET_DIAGNOSTIC_(self%id_detdiv, detdiv)
-         _ADD_SOURCE_(self%id_det, detdiv)
-         flux_u = flux_l ! VS outgoing flux is incoming flux of the box below
-      _DOWNWARD_LOOP_END_
-      _MOVE_TO_BOTTOM_
-      flux_l = MIN(1.0_rk,self%burdige_fac*fDET**self%burdige_exp)*fDET ! VS flux through bottom layer
-      detdiv_bottom = (flux_u_bottom-flux_l)/bgc_dz  ! VS divergence at bottom box
-      _SET_DIAGNOSTIC_(self%id_detdiv, detdiv_bottom)
-      _ADD_SOURCE_(self%id_det, detdiv_bottom-detdiv) ! VS correcting the former one
-   end subroutine
-
-   subroutine do_column(self, _ARGUMENTS_DO_COLUMN_)
-      class (type_mops_detritus), intent(in) :: self
-      _DECLARE_ARGUMENTS_DO_COLUMN_
-
-      real(rk) :: z, dz, fcaco3_u, fcaco3_l !, att_z, att_dz
+      real(rk) :: bgc_z, bgc_dz
+      real(rk) :: detwa, DET, wdet
+      real(rk) :: fdet_u, fdet_l, fdiv_det, fdet_u_bottom, fdiv_det_bottom
+      real(rk) :: fcaco3_u, fcaco3_l
       real(rk) :: det_prod ! produced detritus C in (euphotic) box [mol C/m3/d]
       real(rk) :: caco3_prod ! produced CaCO3 in (euphotic) box [mol CaCO3/m3/d]
       real(rk) :: int_det_prod ! total produced detritus C in water column [mol C/m2/d]
       real(rk) :: int_caco3_prod ! total produced CaCO3 in water column [mol CaCO3/m2/d]
       real(rk) :: fdiv_caco3 ! diagnostic value to be computed
-      ! calculate CaCO3 divergence acc. to MOPS3.1 code
+
+      detwa = self%detlambda/self%detmartin
+      fdet_u = 0.0_rk ! VS detritus flux through upper box layer
       _GET_HORIZONTAL_(self%id_int_det_prod, int_det_prod)
       int_caco3_prod = rcp * self%frac_caco3 * int_det_prod
       _DOWNWARD_LOOP_BEGIN_
-         _GET_(self%id_bgc_z, z)
-         _GET_(self%id_bgc_dz, dz)
+         fdet_u_bottom = fdet_u
+         _GET_(self%id_bgc_z, bgc_z)
+         _GET_(self%id_bgc_dz, bgc_dz)
+         _GET_(self%id_det, DET)
          _GET_(self%id_det_prod, det_prod )
-         fcaco3_u = exp( -( z - dz / 2._rk ) / self%length_caco3 ) ! flow portion through layer top
-         fcaco3_l = exp( -( z + dz / 2._rk ) / self%length_caco3 ) ! flow portion through layer bottom 
-         fdiv_caco3 = int_caco3_prod * ( fcaco3_u - fcaco3_l ) / dz ! CaCO3 flux divergence
-         _SET_DIAGNOSTIC_( self%id_fdiv_caco3, fdiv_caco3 ) ! f8_out in original MOPS code
-         ! VS having only a few extra commands for an optional subroutine "do"
-         !    we place the extra commands here
-         ! Remark: results slightly differ from those obtained by using "do"
+         DET = MAX(DET-alimit*alimit,0.0_rk)
+         wdet = self%detwb + bgc_z*detwa
+         fdet_l = wdet*DET ! VS detritus flux through lower box layer
+         fdiv_det = (fdet_u-fdet_l)/bgc_dz  ! divergence of detritus
+         fdet_u = fdet_l ! VS outgoing flux is incoming flux of the box below
+         fcaco3_u = exp( -( bgc_z - bgc_dz / 2._rk ) / self%length_caco3 ) ! flow portion through layer top
+         fcaco3_l = exp( -( bgc_z + bgc_dz / 2._rk ) / self%length_caco3 ) ! flow portion through layer bottom 
+         fdiv_caco3 = int_caco3_prod * ( fcaco3_u - fcaco3_l ) / bgc_dz ! CaCO3 flux divergence
          caco3_prod = rcp * self%frac_caco3 * det_prod ! CaCO3 portion of DET produced by plankton
+         _SET_DIAGNOSTIC_(self%id_fdiv_det, fdiv_det)
+         _SET_DIAGNOSTIC_( self%id_fdiv_caco3, fdiv_caco3 ) ! f8_out in original MOPS code
          _SET_DIAGNOSTIC_( self%id_f9, caco3_prod )
+         _ADD_SOURCE_(self%id_det, fdiv_det)
          _ADD_SOURCE_(self%id_dic, fdiv_caco3 - caco3_prod )
          _ADD_SOURCE_(self%id_alk, 2._rk * ( fdiv_caco3 - caco3_prod ) )
-!         ! VS for short, debugging output:
-!         write(self%file_unit, '(A, E10.3, A, E10.3, A, E10.3, A, E10.3, &
-!            A, E10.3, A, E10.3, A, E10.3, A, E10.3, A, E10.3, A, E10.3, &
-!            A, E10.3)') &
-!            "I am a box in detritus.F90 with rcp = ", rcp, &
-!            ", frac_caco3 = ", self%frac_caco3, &
-!            ", det_prod = ", det_prod, &
-!            ", int_det_prod = ", int_det_prod, &
-!            ", int_caco3_prod = ", int_caco3_prod, &
-!            ", upper flow portion = ", fcaco3_u, &
-!            ", lower flow portion = ", fcaco3_l, &
-!            ", dz = ", dz, &
-!            ", fdiv_caco3 = ", fdiv_caco3, &
-!            ", caco3_prod = ", caco3_prod, &
-!            ", _ADD_SOURCE_( alk ) = ", 2._rk * ( fdiv_caco3 - caco3_prod )
       _DOWNWARD_LOOP_END_
       _MOVE_TO_BOTTOM_
+      fdet_l = MIN(1.0_rk,self%burdige_fac*fdet_l**self%burdige_exp)*fdet_l ! VS flux through bottom layer
+      fdiv_det_bottom = (fdet_u_bottom-fdet_l)/bgc_dz  ! VS divergence at bottom box
       ! VS at the seafloor, all incoming CaCO3 remains to be dissolved,
       ! i.e., actually fdiv_caco3 = int_caco3_prod * fcaco3_u / dz
-      fdiv_caco3 = int_caco3_prod * fcaco3_u / dz
+      fdiv_caco3 = int_caco3_prod * fcaco3_u / bgc_dz
+      _SET_DIAGNOSTIC_(self%id_fdiv_det, fdiv_det_bottom)
       _SET_DIAGNOSTIC_( self%id_fdiv_caco3, fdiv_caco3 )
       ! VS adding the following correction terms for the bottom layer: 
-      _ADD_SOURCE_(self%id_dic, int_caco3_prod * fcaco3_l / dz )
-      _ADD_SOURCE_(self%id_alk, 2._rk * int_caco3_prod * fcaco3_l / dz )
+      _ADD_SOURCE_(self%id_det, fdiv_det_bottom-fdiv_det) ! VS correcting the former one
+      _ADD_SOURCE_(self%id_dic, int_caco3_prod * fcaco3_l / bgc_dz )
+      _ADD_SOURCE_(self%id_alk, 2._rk * int_caco3_prod * fcaco3_l / bgc_dz )
    end subroutine do_column
-
-!   subroutine do(self, _ARGUMENTS_DO_)
-!      class (type_mops_detritus), intent(in) :: self
-!      _DECLARE_ARGUMENTS_DO_
-!
-!      real(rk) :: det_prod, caco3_prod, fdiv_caco3
-!      _LOOP_BEGIN_
-!         _GET_(self%id_det_prod, det_prod) ! detritus produced by plankton
-!         _GET_(self%id_fdiv_caco3_in, fdiv_caco3) ! implicite CaCO divergence
-!         caco3_prod = rcp * self%frac_caco3 * det_prod ! CaCO3 portion of detritus produced by plankton
-!         _ADD_SOURCE_(self%id_dic, fdiv_caco3-caco3_prod)
-!         _ADD_SOURCE_(self%id_alk, 2._rk*(fdiv_caco3-caco3_prod))
-!      _LOOP_END_
-!   end subroutine do
 
    subroutine do_bottom(self, _ARGUMENTS_DO_BOTTOM_)
       class (type_mops_detritus), intent(in) :: self
       _DECLARE_ARGUMENTS_DO_BOTTOM_
 
-      real(rk) :: detwa, bgc_z, DET, wdet, fDET, flux_l
+      real(rk) :: detwa, bgc_z, DET, wdet, fdet, fdet_l
 
       detwa = self%detlambda/self%detmartin
       _BOTTOM_LOOP_BEGIN_
@@ -205,10 +161,10 @@ contains
          DET = MAX(DET-alimit*alimit,0.0_rk)
 
          wdet = self%detwb + bgc_z*detwa
-         fDET = wdet*DET
-         flux_l = MIN(1.0_rk,self%burdige_fac*fDET**self%burdige_exp)*fDET
+         fdet = wdet * DET
+         fdet_l = MIN(1.0_rk,self%burdige_fac*fdet**self%burdige_exp)*fdet
 
-         _SET_BOTTOM_DIAGNOSTIC_(self%id_burial, flux_l)
+         _SET_BOTTOM_DIAGNOSTIC_(self%id_burial, fdet_l)
       _BOTTOM_LOOP_END_
    end subroutine
 
