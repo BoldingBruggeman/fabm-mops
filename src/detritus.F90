@@ -99,7 +99,7 @@ contains
 
       real(rk) :: bgc_z, bgc_dz
       real(rk) :: detwa, DET, wdet
-      real(rk) :: fdet_u, fdet_l, fdiv_det, fdet_u_bottom, fdiv_det_bottom
+      real(rk) :: fdet_u, fdet_l, fdiv_det, fdet_u_bottom, fdiv_det_bottom, fdiv_caco3_bottom
       real(rk) :: fcaco3_u, fcaco3_l
       real(rk) :: det_prod ! produced detritus C in (euphotic) box [mol C/m3/d]
       real(rk) :: caco3_prod ! produced CaCO3 in (euphotic) box [mol CaCO3/m3/d]
@@ -136,15 +136,14 @@ contains
       _MOVE_TO_BOTTOM_
       fdet_l = MIN(1.0_rk,self%burdige_fac*fdet_l**self%burdige_exp)*fdet_l ! VS flux through bottom layer
       fdiv_det_bottom = (fdet_u_bottom-fdet_l)/bgc_dz  ! VS divergence at bottom box
-      ! VS at the seafloor, all incoming CaCO3 remains to be dissolved,
-      ! i.e., actually fdiv_caco3 = int_caco3_prod * fcaco3_u / dz
-      fdiv_caco3 = int_caco3_prod * fcaco3_u / bgc_dz
+      ! VS at the seafloor, all incoming CaCO3 remains to be dissolved
+      fdiv_caco3_bottom = int_caco3_prod * fcaco3_u / bgc_dz
       _SET_DIAGNOSTIC_(self%id_fdiv_det, fdiv_det_bottom)
-      _SET_DIAGNOSTIC_( self%id_fdiv_caco3, fdiv_caco3 )
+      _SET_DIAGNOSTIC_( self%id_fdiv_caco3, fdiv_caco3_bottom )
       ! VS adding the following correction terms for the bottom layer: 
       _ADD_SOURCE_(self%id_det, fdiv_det_bottom-fdiv_det) ! VS correcting the former one
-      _ADD_SOURCE_(self%id_dic, int_caco3_prod * fcaco3_l / bgc_dz )
-      _ADD_SOURCE_(self%id_alk, 2._rk * int_caco3_prod * fcaco3_l / bgc_dz )
+      _ADD_SOURCE_(self%id_dic, fdiv_caco3_bottom-fdiv_caco3 )
+      _ADD_SOURCE_(self%id_alk, 2._rk*fdiv_caco3_bottom-2._rk*fdiv_caco3 )
    end subroutine do_column
 
    subroutine do_bottom(self, _ARGUMENTS_DO_BOTTOM_)
