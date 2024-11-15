@@ -140,7 +140,7 @@ contains
       fdiv_caco3_bottom = int_caco3_prod * fcaco3_u / bgc_dz
       _SET_DIAGNOSTIC_(self%id_fdiv_det, fdiv_det_bottom)
       _SET_DIAGNOSTIC_( self%id_fdiv_caco3, fdiv_caco3_bottom )
-      ! VS adding the following correction terms for the bottom layer: 
+      ! VS adding the following correction terms for the bottom layer:
       _ADD_SOURCE_(self%id_det, fdiv_det_bottom-fdiv_det) ! VS correcting the former one
       _ADD_SOURCE_(self%id_dic, fdiv_caco3_bottom-fdiv_caco3 )
       _ADD_SOURCE_(self%id_alk, 2._rk*fdiv_caco3_bottom-2._rk*fdiv_caco3 )
