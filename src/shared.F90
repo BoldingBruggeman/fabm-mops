@@ -3,12 +3,7 @@ module mops_shared
    real(rk), parameter :: vsafe = 1.0e-6_rk
    real(rk), parameter :: rcp = 117.0_rk       !redfield ratio C:P
    real(rk), parameter :: rnp = 16.0_rk        !redfield ratio N:P
-   real(rk), parameter :: ro2ut = 167.0_rk !redfield -O2:P ratio
-!   real(rk), parameter :: ro2ut = 151.13958_rk !redfield -O2:P ratio
-! VS changed value of ro2ut for comparison with PETSC3.13 version in
-! blogin/scratch/usr/shmvolki/models/TMM-MOPS/sim-single/MIT28/sim-01-02-2024
-! (experiment OBS_NARR, Kriest et al., 2017)
-! can I rather set this value in my "*.yaml" file, too ...?
+   real(rk), parameter :: ro2ut = 151.13958_rk !redfield -O2:P ratio
    real(rk), parameter :: rhno3ut = 0.8_rk*ro2ut - rnp ! -HNO3:P ratio for denitrification
 !   real(rk), parameter :: bgc_dt = 0.0625_rk   !VS this is correct for 90 minute bgc steps
    real(rk), parameter :: bgc_dt = 0.5_rk   !VS this is correct for 12 hour bgc steps
