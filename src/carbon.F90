@@ -85,8 +85,9 @@ contains
              surf_dic,surf_pho,surf_alk,surf_sil,bgc_theta,bgc_salt,pco2atm, &
              surf_ph,co2gasex)
 
-         _ADD_SURFACE_FLUX_(self%id_dic, co2gasex)
-         _SET_SURFACE_DIAGNOSTIC_(self%id_gasex, co2gasex)
+! VS nur kurz, test if dic changes at all by caco3 processes if there is no exchange at the surface
+!         _ADD_SURFACE_FLUX_(self%id_dic, co2gasex)
+!         _SET_SURFACE_DIAGNOSTIC_(self%id_gasex, co2gasex)
          _SET_SURFACE_DIAGNOSTIC_(self%id_surf_ph, surf_ph)
       _SURFACE_LOOP_END_
    end subroutine do_surface

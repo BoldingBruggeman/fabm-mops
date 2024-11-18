@@ -12,7 +12,7 @@ module mops_phytoplankton
    type, extends(type_base_model), public :: type_mops_phytoplankton
       type (type_dependency_id) :: id_bgc_theta, id_bgc_dz, id_ciz, id_att
       type (type_surface_dependency_id) :: id_bgc_tau
-      type (type_state_variable_id) :: id_c, id_po4, id_din, id_oxy, id_det, id_dop, id_dic
+      type (type_state_variable_id) :: id_c, id_po4, id_din, id_oxy, id_det, id_dop, id_dic, id_alk
       ! VS  introducing id_det_prod_phy (see below)
       type (type_diagnostic_variable_id) :: id_f1, id_chl, id_det_prod_phy
 
@@ -58,6 +58,7 @@ contains
       call self%register_state_dependency(self%id_din, 'din', 'mmol N/m3', 'dissolved inorganic nitrogen')
       call self%register_state_dependency(self%id_po4, 'pho', 'mmol P/m3', 'phosphate')
       call self%register_state_dependency(self%id_dic, 'dic', 'mmol C/m3', 'dissolved inorganic carbon')
+      call self%register_state_dependency(self%id_alk, 'alk', 'mmol/m3', 'alkalinity')
 
       ! Register environmental dependencies
       call self%register_dependency(self%id_ciz, 'ciz', 'W m-2', 'PAR at top of the layer')
@@ -158,9 +159,12 @@ contains
        _ADD_SOURCE_(self%id_po4, -phygrow)
        _ADD_SOURCE_(self%id_dop, self%exutodop*phyexu + phyloss)
        _ADD_SOURCE_(self%id_oxy, phygrow*ro2ut)
+! VS nur kurz
+       print *, 'phygrow*ro2ut is ', phygrow*ro2ut
        _ADD_SOURCE_(self%id_det, (1.0_rk-self%exutodop)*phyexu)
        _ADD_SOURCE_(self%id_din, -phygrow*rnp)
        _ADD_SOURCE_(self%id_dic, -phygrow*rcp)
+       _ADD_SOURCE_(self%id_alk, phygrow*(rnp-1))
        PHY = MAX(PHY - alimit*alimit, 0.0_rk)
        _ADD_SOURCE_(self%id_c,   -self%plambda*PHY)
        _ADD_SOURCE_(self%id_dop,  self%plambda*PHY)

@@ -61,6 +61,8 @@ contains
          CALL O2_SURFFORCING(vgas660,bgc_atmosp,bgc_theta,bgc_salt, &
              surf_oxy,o2gasex)
          _ADD_SURFACE_FLUX_(self%id_oxy, o2gasex)
+! VS nur kurz
+         print *, 'o2gasex/dz is ', o2gasex / 50.0_rk
          _SET_SURFACE_DIAGNOSTIC_(self%id_o2gasex, o2gasex)
 
       _SURFACE_LOOP_END_

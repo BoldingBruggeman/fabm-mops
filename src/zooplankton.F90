@@ -10,7 +10,7 @@ module mops_zooplankton
    private
 
    type, extends(type_base_model), public :: type_mops_zooplankton
-      type (type_state_variable_id) :: id_c, id_phy, id_po4, id_din, id_oxy, id_det, id_dop, id_dic
+      type (type_state_variable_id) :: id_c, id_phy, id_po4, id_din, id_oxy, id_det, id_dop, id_dic, id_alk
       type (type_diagnostic_variable_id) :: id_f2
       ! VS: introducing id_det_prod_zoo (see below)
       type (type_diagnostic_variable_id) :: id_det_prod_zoo
@@ -51,6 +51,7 @@ contains
       call self%register_state_dependency(self%id_din, 'din', 'mmol N/m3', 'dissolved inorganic nitrogen')
       call self%register_state_dependency(self%id_po4, 'pho', 'mmol P/m3', 'phosphate')
       call self%register_state_dependency(self%id_dic, 'dic', 'mmol C/m3', 'dissolved inorganic carbon')
+      call self%register_state_dependency(self%id_alk, 'alk', 'mmol/m3', 'alkalinity')
 
       ! Register environmental dependencies
       call self%add_to_aggregate_variable(standard_variables%total_phosphorus, self%id_c)
@@ -109,11 +110,13 @@ contains
         _ADD_SOURCE_(self%id_po4, zooexu)
         _ADD_SOURCE_(self%id_dop, self%graztodop*(1.0_rk-self%ACeff)*graz + self%graztodop*zooloss)
         _ADD_SOURCE_(self%id_oxy, -zooexu*ro2ut)
+        print *, '-zooexu*ro2ut is ', -zooexu*ro2ut
         _ADD_SOURCE_(self%id_phy, -graz)
         _ADD_SOURCE_(self%id_det, (1.0_rk-self%graztodop)*(1.0_rk-self%ACeff)*graz + (1.0_rk-self%graztodop)*zooloss)
 
         _ADD_SOURCE_(self%id_din, zooexu*rnp)
         _ADD_SOURCE_(self%id_dic, zooexu*rcp)
+        _ADD_SOURCE_(self%id_alk, zooexu*(1-rnp))
 
          ZOO = MAX(ZOO - alimit*alimit, 0.0_rk)
          _ADD_SOURCE_(self%id_c, -self%zlambda*ZOO)

@@ -56,7 +56,7 @@ contains
       ! VS detritus without minimum value to avoid clipping in TMM implementation
       ! (see Jorns mail on October 16, 2024)
       call self%register_state_variable(self%id_det, 'c', 'mmol P/m3', 'detritus')
-      call self%register_state_variable(self%id_alk, 'alk', 'mmol Alk/m3', 'alkalinity')
+      call self%register_state_variable(self%id_alk, 'alk', 'mmol/m3', 'alkalinity')
       call self%register_state_dependency(self%id_dic, 'dic', 'mmol C/m3', 'dissolved inorganic carbon')
 
       call self%add_to_aggregate_variable(standard_variables%total_phosphorus, self%id_det)
@@ -129,6 +129,9 @@ contains
          _SET_DIAGNOSTIC_(self%id_fdiv_det, fdiv_det)
          _SET_DIAGNOSTIC_( self%id_fdiv_caco3, fdiv_caco3 ) ! f8_out in original MOPS code
          _SET_DIAGNOSTIC_( self%id_f9, caco3_prod )
+!         print *, 'fdiv_det is ', fdiv_det
+!         print *, 'fdiv_caco3 is ', fdiv_caco3
+!         print *, 'caco3_prod is ', caco3_prod
          _ADD_SOURCE_(self%id_det, fdiv_det)
          _ADD_SOURCE_(self%id_dic, fdiv_caco3 - caco3_prod )
          _ADD_SOURCE_(self%id_alk, 2._rk * ( fdiv_caco3 - caco3_prod ) )
@@ -136,8 +139,10 @@ contains
       _MOVE_TO_BOTTOM_
       fdet_l = MIN(1.0_rk,self%burdige_fac*fdet_l**self%burdige_exp)*fdet_l ! VS flux through bottom layer
       fdiv_det_bottom = (fdet_u_bottom-fdet_l)/bgc_dz  ! VS divergence at bottom box
+!      print *, 'corrected fdiv_det at bottom is ', fdiv_det_bottom
       ! VS at the seafloor, all incoming CaCO3 remains to be dissolved
       fdiv_caco3_bottom = int_caco3_prod * fcaco3_u / bgc_dz
+!      print *, 'corrected fdiv_caco3 at bottom is ', fdiv_caco3_bottom
       _SET_DIAGNOSTIC_(self%id_fdiv_det, fdiv_det_bottom)
       _SET_DIAGNOSTIC_( self%id_fdiv_caco3, fdiv_caco3_bottom )
       ! VS adding the following correction terms for the bottom layer:

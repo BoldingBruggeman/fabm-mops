@@ -13,7 +13,7 @@ module mops_runoff
    type, extends(type_base_model), public :: type_mops_runoff
       type (type_horizontal_dependency_id) :: id_source
       type (type_bottom_dependency_id) :: id_bottom_depth
-      type (type_state_variable_id) :: id_pho, id_din, id_dic
+      type (type_state_variable_id) :: id_pho, id_din, id_dic, id_alk
       logical :: whole_column
    contains
       procedure :: initialize
@@ -34,6 +34,7 @@ contains
       call self%register_state_dependency(self%id_din, 'din', 'mmol N/m3', 'dissolved inorganic nitrogen')
       call self%register_state_dependency(self%id_pho, 'pho', 'mmol P/m3', 'phosphate')
       call self%register_state_dependency(self%id_dic, 'dic', 'mmol C/m3', 'dissolved inorganic carbon')
+      call self%register_state_dependency(self%id_alk, 'alk', 'mmol/m3', 'alkalinity')
 
       self%dt = 86400.0_rk
    end subroutine
@@ -51,6 +52,7 @@ contains
          _ADD_SURFACE_FLUX_(self%id_pho, source)
          _ADD_SURFACE_FLUX_(self%id_din, source*rnp)
          _ADD_SURFACE_FLUX_(self%id_dic, source*rcp)
+         _ADD_SURFACE_FLUX_(self%id_alk, source*(1-rnp))
       _SURFACE_LOOP_END_
    end subroutine
 
