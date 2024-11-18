@@ -49,10 +49,11 @@ contains
 
       _SURFACE_LOOP_BEGIN_
          _GET_HORIZONTAL_(self%id_source, source)
-         _ADD_SURFACE_FLUX_(self%id_pho, source)
-         _ADD_SURFACE_FLUX_(self%id_din, source*rnp)
-         _ADD_SURFACE_FLUX_(self%id_dic, source*rcp)
-         _ADD_SURFACE_FLUX_(self%id_alk, source*(1-rnp))
+! VS nur kurz without surface exchange
+!         _ADD_SURFACE_FLUX_(self%id_pho, source)
+!         _ADD_SURFACE_FLUX_(self%id_din, source*rnp)
+!         _ADD_SURFACE_FLUX_(self%id_dic, source*rcp)
+!         _ADD_SURFACE_FLUX_(self%id_alk, -source*(rnp+1))
       _SURFACE_LOOP_END_
    end subroutine
 

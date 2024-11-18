@@ -110,13 +110,12 @@ contains
         _ADD_SOURCE_(self%id_po4, zooexu)
         _ADD_SOURCE_(self%id_dop, self%graztodop*(1.0_rk-self%ACeff)*graz + self%graztodop*zooloss)
         _ADD_SOURCE_(self%id_oxy, -zooexu*ro2ut)
-        print *, '-zooexu*ro2ut is ', -zooexu*ro2ut
         _ADD_SOURCE_(self%id_phy, -graz)
         _ADD_SOURCE_(self%id_det, (1.0_rk-self%graztodop)*(1.0_rk-self%ACeff)*graz + (1.0_rk-self%graztodop)*zooloss)
 
         _ADD_SOURCE_(self%id_din, zooexu*rnp)
         _ADD_SOURCE_(self%id_dic, zooexu*rcp)
-        _ADD_SOURCE_(self%id_alk, zooexu*(1-rnp))
+        _ADD_SOURCE_(self%id_alk, -zooexu*(rnp+1))
 
          ZOO = MAX(ZOO - alimit*alimit, 0.0_rk)
          _ADD_SOURCE_(self%id_c, -self%zlambda*ZOO)
