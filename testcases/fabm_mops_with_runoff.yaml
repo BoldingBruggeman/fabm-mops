@@ -144,3 +144,4 @@ instances:
          din: din/c                              # dissolved inorganic nitrogen [mmol N/m3; default=]
          pho: pho/c                              # phosphate [mmol P/m3; default=]
          dic: carbon/c                           # dissolved inorganic carbon [mmol C/m3; default=]
+         alk: det/alk                            # alkalinity [mmol/m3; default=]
