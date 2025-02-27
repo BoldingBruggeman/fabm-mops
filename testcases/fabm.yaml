@@ -124,3 +124,11 @@ instances:
       parameters:
          standard_name:                          # standard name [default=]
          value: 7.7                              # value
+   runoff:
+      model: mops/runoff                         # model type
+      parameters:
+         whole_column: true
+      coupling:
+         din: din/c                              # dissolved inorganic nitrogen [mmol N/m3; default=]
+         pho: pho/c                              # phosphate [mmol P/m3; default=]
+         dic: carbon/c                           # dissolved inorganic carbon [mmol C/m3; default=]
