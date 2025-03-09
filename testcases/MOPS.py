@@ -8,7 +8,7 @@ import fabmos.input.riverlist
 
 import pandas as pd
 
-tm_config_dir = "/Users/vsauerland/MITgcm_2.8deg"  # directory with a TM configuration from http://kelvin.earth.ox.ac.uk/spk/Research/TMM/TransportMatrixConfigs/
+tm_config_dir = "."  # directory with a TM configuration from http://kelvin.earth.ox.ac.uk/spk/Research/TMM/TransportMatrixConfigs/
 calendar = "360_day"  # any valid calendar recognized by cftime, see https://cfconventions.org/cf-conventions/cf-conventions.html#calendar
 
 script_dir = os.path.dirname(__file__)
@@ -22,26 +22,10 @@ sim = fabmos.transport.tmm.Simulator(domain, calendar=calendar, fabm=fabm_yaml)
 
 sim.fabm.get_dependency("mole_fraction_of_carbon_dioxide_in_air").set(280.0)
 
-# VS: Jorns suggestion to have same annual air pressure forcing as with atmosp_ files
-#     in the PETSc-TMM-MOPS version (see Jorns mail at August 29, 2024)
-airp = fabmos.input.from_nc("/Users/vsauerland/tmm_matlab_code/OCMIP_Utils/Data/gasx_ocmip2.nc", "P", decode_times=False)
-airp.coords["MONTH_REG"] = fabmos.transport.tmm.climatology_times(calendar)
-sim.fabm.get_dependency("surface_air_pressure").set(airp * 101325.0,climatology=True)
-# sim.fabm.get_dependency("surface_air_pressure").set(101325.0)
-
-# VS: deactivating dilution/concentration of tracers by precipitation/evaporation
-#     this keeps uniformly distributet BGC tracers uniformly distributed
-#     if the corresponding BGC processes are deactivated
-#     (see Jorns mail at August 24, 2024)
-# VS: but I have to switch it off for carbon and alkalinity
-#     to yield the effect of the terms co2emp and alkemp in BGC_MODEL.F
-#     Jorn mailed me how to do it (November 7, 2024, second approach)
-for tracer in sim.tracers:
-   if tracer.name != 'carbon_c' and tracer.name != 'det_alk' :
-      tracer.precipitation_follows_target_cell = True
+sim.fabm.get_dependency("surface_air_pressure").set(101325.0)
 
 # Load rivers from https://doi.org/10.1029/96JD00932
-# but the version with the top 75 rivers "rivrstat75.txt" only
+# but restricted to the 75 largest rivers
 rivers = pd.read_fwf(
     os.path.join(script_dir, "rivrstat75.txt"),
     skiprows=7,
@@ -69,9 +53,7 @@ out.request("runoff_source", "temp", "salt", "wind", "ice", "surface_air_pressur
 
 start = cftime.datetime(2000, 1, 1, calendar=calendar)
 stop = cftime.datetime(2001, 1, 1, calendar=calendar)
-sim.start(start, timestep = 12 * 3600, transport_timestep = 12 * 3600 )
-# VS nur kurz ohne transport
-#sim.start(start, timestep = 12 * 3600, transport_timestep = 12 * 3600 * 2 * 365 * 100 )
+sim.start(start, timestep = 1.5 * 3600, transport_timestep = 12 * 3600 )
 while sim.time < stop:
     sim.advance()
 sim.finish()
