@@ -20,6 +20,7 @@ module mops_detritus
       type (type_bottom_dependency_id) :: id_bgc_z_bot 
       type (type_dependency_id) :: id_det_prod ! VS for CaCO3 divergence
       type (type_horizontal_dependency_id) :: id_int_det_prod ! VS for CaCO3 divergence
+      type (type_diagnostic_variable_id) :: id_flux_det ! VS detritus flux through layer upper boundaries
       type (type_diagnostic_variable_id) :: id_fdiv_det ! VS detritus divergence
       type (type_diagnostic_variable_id) :: id_f9 ! VS CaCO3 production
       type (type_diagnostic_variable_id) :: id_fdiv_caco3 ! VS CaCO3 divergence
@@ -61,7 +62,10 @@ contains
 
       call self%add_to_aggregate_variable(standard_variables%total_phosphorus, self%id_det)
 
+      ! VS diagnostic vaiable fdiv_det
       call self%register_diagnostic_variable(self%id_fdiv_det, 'fdiv_det', 'mmol P/m3/d', 'divergence', source=source_do_column)
+      ! VS diagnostic vaiable flux_det (f3)
+      call self%register_diagnostic_variable(self%id_flux_det, 'flux_det', 'mmol P/m2/d', 'incoming detritus flux', source=source_do_column)
       call self%register_diagnostic_variable(self%id_burial, 'burial', 'mmol P/m2/d', 'burial')
       ! VS diagnostic variable f9
       call self%register_diagnostic_variable(self%id_f9, 'f9', &
@@ -112,6 +116,7 @@ contains
       _GET_HORIZONTAL_(self%id_int_det_prod, int_det_prod)
       int_caco3_prod = rcp * self%frac_caco3 * int_det_prod
       _DOWNWARD_LOOP_BEGIN_
+         _SET_DIAGNOSTIC_(self%id_flux_det, fdet_u )
          fdet_u_bottom = fdet_u
          _GET_(self%id_bgc_z, bgc_z)
          _GET_(self%id_bgc_dz, bgc_dz)
