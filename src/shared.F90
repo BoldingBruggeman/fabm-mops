@@ -3,7 +3,8 @@ module mops_shared
    real(rk), parameter :: vsafe = 1.0e-6_rk
    real(rk), parameter :: rcp = 117.0_rk       !redfield ratio C:P
    real(rk), parameter :: rnp = 16.0_rk        !redfield ratio N:P
-   real(rk), parameter :: ro2ut = 151.13958_rk !redfield -O2:P ratio
+!   real(rk), parameter :: ro2ut = 151.13958_rk !redfield -O2:P ratio; value for comparison with PETSC based TMM-MOPS
+   real(rk), parameter :: ro2ut = 169.2545586809128568828164418391679646447301_rk !redfield -O2:P ratio; value as in experiment L4-SO of Kriest et al. (2023)
    real(rk), parameter :: rhno3ut = 0.8_rk*ro2ut - rnp ! -HNO3:P ratio for denitrification
 !   real(rk), parameter :: bgc_dt = 0.0625_rk   !VS this is correct for 90 minute bgc steps
    real(rk), parameter :: bgc_dt = 0.5_rk   !VS this is correct for 12 hour bgc steps
