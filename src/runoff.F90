@@ -14,6 +14,7 @@ module mops_runoff
       type (type_horizontal_dependency_id) :: id_source
       type (type_bottom_dependency_id) :: id_bottom_depth
       type (type_state_variable_id) :: id_pho, id_din, id_dic, id_alk
+      type (type_diagnostic_variable_id) :: id_vsource ! VS equal flux in mmol P/m3/d in the water column
       logical :: whole_column
    contains
       procedure :: initialize
@@ -35,6 +36,8 @@ contains
       call self%register_state_dependency(self%id_pho, 'pho', 'mmol P/m3', 'phosphate')
       call self%register_state_dependency(self%id_dic, 'dic', 'mmol C/m3', 'dissolved inorganic carbon')
       call self%register_state_dependency(self%id_alk, 'alk', 'mmol/m3', 'alkalinity')
+
+      call self%register_diagnostic_variable(self%id_vsource, 'vsource', 'mmol P/m3/d', 'vsource') ! VS equal flux in mmol P/m3/d in the water column
 
       self%dt = 86400.0_rk
    end subroutine
@@ -68,9 +71,11 @@ contains
          _GET_HORIZONTAL_(self%id_source, source)
          _GET_BOTTOM_(self%id_bottom_depth, bottom_depth)
          source = source / bottom_depth
+         _SET_DIAGNOSTIC_(self%id_vsource, source ) ! mmol P/m3/d
          _ADD_SOURCE_(self%id_pho, source)
          _ADD_SOURCE_(self%id_din, source*rnp)
          _ADD_SOURCE_(self%id_dic, source*rcp)
+         _ADD_SOURCE_(self%id_alk, -source*(rnp+1)) ! VS added June 16, 2025
       _LOOP_END_
    end subroutine
 
