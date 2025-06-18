@@ -155,16 +155,17 @@ contains
       class (type_mops_detritus), intent(in) :: self
       _DECLARE_ARGUMENTS_DO_BOTTOM_
 
-      real(rk) :: detwa, bgc_z, DET, wdet, fdet, fdet_l
+      real(rk) :: detwa, bgc_z, bgc_dz, DET, wdet, fdet, fdet_l
 
       detwa = self%detlambda/self%detmartin
       _BOTTOM_LOOP_BEGIN_
          _GET_BOTTOM_(self%id_bgc_z_bot, bgc_z)
+         _GET_(self%id_bgc_dz, bgc_dz)
          _GET_(self%id_det, DET)
 
          DET = MAX(DET-alimit*alimit,0.0_rk)
 
-         wdet = self%detwb + bgc_z*detwa
+         wdet = self%detwb + ( bgc_z - bgc_dz / 2._rk ) * detwa
          fdet = wdet * DET
          fdet_l = MIN(1.0_rk,self%burdige_fac*fdet**self%burdige_exp)*fdet
 
