@@ -14,6 +14,8 @@ module mops_zooplankton
       type (type_diagnostic_variable_id) :: id_f2
       ! VS: introducing id_det_prod_zoo (see below)
       type (type_diagnostic_variable_id) :: id_det_prod_zoo
+      ! VS: diagnostic to complete all carbon_c flux diagnostics
+      type (type_diagnostic_variable_id) :: id_zooexu
 
       real(rk) :: ACmuzoo, ACkphy, AClambdaz, AComniz, ACeff, graztodop, zlambda
    contains
@@ -41,6 +43,8 @@ contains
       call self%register_state_variable(self%id_c, 'c', 'mmol P/m3', 'concentration') !, minimum=0.0_rk)
 
       call self%register_diagnostic_variable(self%id_f2, 'f2', 'mmol P/m3/d', 'grazing')
+      ! VS: diagnostic to complete all carbon_c flux diagnostics
+      call self%register_diagnostic_variable(self%id_zooexu, 'zooexu', 'mmol P/m3/d', 'exudation')
       ! VS introducing detritus production by zooplankton as diagnostic variable
       call self%register_diagnostic_variable(self%id_det_prod_zoo, 'det_prod_zoo', 'mmol P/m3/d', 'detritus produced by zooplankton')
 
@@ -103,6 +107,7 @@ contains
 
        _SET_DIAGNOSTIC_(self%id_f2, graz)
 ! VS detritus production by zooplankton
+       _SET_DIAGNOSTIC_(self%id_zooexu, zooexu)
        _SET_DIAGNOSTIC_(self%id_det_prod_zoo, (1.0_rk-self%graztodop)*(1.0_rk-self%ACeff)*graz + (1.0_rk-self%graztodop)*zooloss)
 
 ! Collect all euphotic zone fluxes in these arrays.
