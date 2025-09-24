@@ -38,6 +38,8 @@ contains
       call self%register_state_dependency(self%id_alk, 'alk', 'mmol/m3', 'alkalinity')
 
       call self%register_diagnostic_variable(self%id_vsource, 'vsource', 'mmol P/m3/d', 'vsource') ! VS equal flux in mmol P/m3/d in the water column
+      ! VS an aggregate variable for all biogeochemical DIC sources
+      call self%add_to_aggregate_variable(total_dic_change_by_bgc, self%id_dic)
 
       self%dt = 86400.0_rk
    end subroutine

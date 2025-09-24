@@ -43,6 +43,8 @@ contains
       call self%register_dependency(self%id_bgc_atmosp, standard_variables%surface_air_pressure)
       call self%register_dependency(self%id_pco2atm, standard_variables%mole_fraction_of_carbon_dioxide_in_air)
       call self%register_dependency(self%id_surf_ph_in, 'surf_ph', '-', 'previous surface pH')
+      ! VS an aggregate variable for all biogeochemical DIC sources
+      call self%add_to_aggregate_variable(total_dic_change_by_bgc, self%id_dic)
       ! VS consider total carbon
       call self%add_to_aggregate_variable(standard_variables%total_carbon, self%id_dic)
 

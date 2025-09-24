@@ -64,8 +64,10 @@ contains
       ! VS also consider total carbon and total nitrogen
       call self%add_to_aggregate_variable(standard_variables%total_carbon, self%id_det, scale_factor=rcp)
       call self%add_to_aggregate_variable(standard_variables%total_nitrogen, self%id_det, scale_factor=rnp)
+      ! VS an aggregate variable for all biogeochemical DIC sources
+      call self%add_to_aggregate_variable(total_dic_change_by_bgc, self%id_dic)
 
-      ! VS diagnostic vaiable fdiv_det
+      ! VS diagnostic variable fdiv_det
       call self%register_diagnostic_variable(self%id_fdiv_det, 'fdiv_det', 'mmol P/m3/d', 'divergence', source=source_do_column)
       ! VS diagnostic vaiable flux_det (f3)
       call self%register_diagnostic_variable(self%id_flux_det, 'flux_det', 'mmol P/m2/d', 'incoming detritus flux', source=source_do_column)

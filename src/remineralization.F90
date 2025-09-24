@@ -49,6 +49,9 @@ contains
       !call self%register_diagnostic_variable(self%id_f5, 'f5', 'mmol/m3/d', 'river input')
       call self%register_diagnostic_variable(self%id_f7, 'f7', 'mmol/m3/d', 'denitrification')
 
+      ! VS an aggregate variable for all biogeochemical DIC sources
+      call self%add_to_aggregate_variable(total_dic_change_by_bgc, self%id_dic)
+
       self%dt = 86400.0_rk
    end subroutine
 

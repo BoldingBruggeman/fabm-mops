@@ -76,6 +76,8 @@ contains
 
       ! VS  phytoplankton (like zooplankton) detritus production contributes to total detritus production by plankton
       call self%add_to_aggregate_variable(detritus_production_by_plankton, self%id_det_prod_phy)
+      ! VS an aggregate variable for all biogeochemical DIC sources
+      call self%add_to_aggregate_variable(total_dic_change_by_bgc, self%id_dic)
 
       self%dt = 86400.0_rk
    end subroutine
