@@ -70,6 +70,10 @@ contains
       call self%add_to_aggregate_variable(standard_variables%attenuation_coefficient_of_photosynthetic_radiative_flux, self%id_c, scale_factor=ACkchl)
       call self%add_to_aggregate_variable(standard_variables%total_phosphorus, self%id_c)
       call self%add_to_aggregate_variable(total_chlorophyll, self%id_chl)
+      ! VS also consider total carbon and total nitrogen
+      call self%add_to_aggregate_variable(standard_variables%total_carbon, self%id_c, scale_factor=rcp)
+      call self%add_to_aggregate_variable(standard_variables%total_nitrogen, self%id_c, scale_factor=rnp)
+
       ! VS  phytoplankton (like zooplankton) detritus production contributes to total detritus production by plankton
       call self%add_to_aggregate_variable(detritus_production_by_plankton, self%id_det_prod_phy)
 

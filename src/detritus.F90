@@ -61,6 +61,9 @@ contains
       call self%register_state_dependency(self%id_dic, 'dic', 'mmol C/m3', 'dissolved inorganic carbon')
 
       call self%add_to_aggregate_variable(standard_variables%total_phosphorus, self%id_det)
+      ! VS also consider total carbon and total nitrogen
+      call self%add_to_aggregate_variable(standard_variables%total_carbon, self%id_det, scale_factor=rcp)
+      call self%add_to_aggregate_variable(standard_variables%total_nitrogen, self%id_det, scale_factor=rnp)
 
       ! VS diagnostic vaiable fdiv_det
       call self%register_diagnostic_variable(self%id_fdiv_det, 'fdiv_det', 'mmol P/m3/d', 'divergence', source=source_do_column)

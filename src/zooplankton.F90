@@ -59,6 +59,9 @@ contains
 
       ! Register environmental dependencies
       call self%add_to_aggregate_variable(standard_variables%total_phosphorus, self%id_c)
+      ! VS also consider total carbon and total nitrogen
+      call self%add_to_aggregate_variable(standard_variables%total_carbon, self%id_c, scale_factor=rcp)
+      call self%add_to_aggregate_variable(standard_variables%total_nitrogen, self%id_c, scale_factor=rnp)
       ! VS zooplankton (like phytoplankton) detritus production contributes to total detritus production by plankton
       call self%add_to_aggregate_variable(detritus_production_by_plankton, self%id_det_prod_zoo)
 
