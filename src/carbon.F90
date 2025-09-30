@@ -14,7 +14,8 @@ module mops_carbon
       type (type_dependency_id) :: id_pho, id_sil, id_bgc_salt, id_bgc_theta
       type (type_surface_dependency_id) :: id_bgc_wind, id_bgc_seaice, id_bgc_atmosp, id_pco2atm, id_surf_ph_in
       type (type_surface_diagnostic_variable_id) :: id_surf_ph, id_gasex
-
+!      ! Parameters
+!      real(rk) :: ocmip_alkfac ! VS test
    contains
       ! Model procedures
       procedure :: initialize
@@ -28,6 +29,7 @@ contains
       integer,                  intent(in)            :: configunit
 
       call self%register_state_variable(self%id_dic, 'c', 'mmol C/m3', 'dissolved inorganic carbon')
+!      call self%get_parameter(self%ocmip_alkfac, 'ocmip_alkfac', 'meq/m3/PSU', 'alkalinity relative to salinity', default=2310.0_rk*1.0245_rk/34.88_rk) ! VS test
       call self%register_state_dependency(self%id_alk, 'alk', 'mmol/m3', 'alkalinity')
 
       call self%register_diagnostic_variable(self%id_surf_ph, 'surf_ph', '-', 'surface pH', missing_value=8.0_rk)
@@ -55,7 +57,7 @@ contains
       class (type_mops_carbon), intent(in) :: self
       _DECLARE_ARGUMENTS_DO_SURFACE_
 
-      real(rk) :: surf_dic, surf_pho, surf_sil, bgc_salt, bgc_theta, surf_alk, co2gasex
+      real(rk) :: surf_dic, surf_pho, surf_sil, bgc_salt, bgc_theta, surf_alk, co2gasex!, surf_alk_ocmip
       real(rk) :: bgc_wind, bgc_seaice, bgc_atmosp, pco2atm, vgas660, surf_ph
 
       _SURFACE_LOOP_BEGIN_
@@ -74,10 +76,12 @@ contains
          _GET_SURFACE_(self%id_bgc_atmosp, bgc_atmosp)
          _GET_SURFACE_(self%id_pco2atm, pco2atm)
          _GET_SURFACE_(self%id_surf_ph_in, surf_ph)
+         !surf_alk_ocmip = self%ocmip_alkfac*bgc_salt ! VS test
 
 ! convert from Pa to atm (requires to convert to Pa in python runscript)
          bgc_atmosp = bgc_atmosp / 101325.0_rk
 
+! VS test: using surf_alk_ocmip instead of surf_alk for co2gasex calculation
          vgas660=(0.337_rk*bgc_wind**2)*0.24_rk*(1.0_rk-bgc_seaice)
          CALL CO2_SURFFORCING(vgas660,bgc_atmosp, &
              surf_dic,surf_pho,surf_alk,surf_sil,bgc_theta,bgc_salt,pco2atm, &
