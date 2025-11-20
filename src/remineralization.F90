@@ -14,7 +14,7 @@ module mops_remineralization
       type (type_state_variable_id) :: id_dop, id_det, id_oxy, id_din, id_po4, id_dic, id_alk
       type (type_diagnostic_variable_id) :: id_f4, id_f5, id_f7
 
-      real(rk) :: dlambda, detlambda, subox, subdin, ACkbaco2, ACkbacdin
+      real(rk) :: ro2ut, dlambda, detlambda, subox, subdin, ACkbaco2, ACkbacdin
    contains
       ! Model procedures
       procedure :: initialize
@@ -27,6 +27,7 @@ contains
       class (type_mops_remineralization), intent(inout), target :: self
       integer,                            intent(in)            :: configunit
 
+      call self%get_parameter(self%ro2ut, 'ro2ut', 'mol O2/mol P','redfield -O2:P ratio', default=151.13958_rk)
       call self%get_parameter(self%dlambda, 'dlambda', '1/d','DOP remineralization rate', default=0.0005133333049196715389730860613828195004870736_rk)
       call self%get_parameter(self%detlambda, 'detlambda', '1/d','detritus remineralization rate', default=0.05_rk)
       call self%get_parameter(self%subox, 'subox', 'mmol/m3','minimum oxygen for oxic degradation', default=1.0_rk)

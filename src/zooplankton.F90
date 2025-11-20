@@ -17,7 +17,7 @@ module mops_zooplankton
       ! VS: diagnostic to complete all carbon_c flux diagnostics
       type (type_diagnostic_variable_id) :: id_zooexu
 
-      real(rk) :: ACmuzoo, ACkphy, AClambdaz, AComniz, ACeff, graztodop, zlambda
+      real(rk) :: ro2ut, ACmuzoo, ACkphy, AClambdaz, AComniz, ACeff, graztodop, zlambda
    contains
       ! Model procedures
       procedure :: initialize
@@ -30,6 +30,7 @@ contains
       class (type_mops_zooplankton), intent(inout), target :: self
       integer,                       intent(in)            :: configunit
 
+      call self%get_parameter(self%ro2ut, 'ro2ut', 'mol O2/mol P','redfield -O2:P ratio', default=151.13958_rk)
       call self%get_parameter(self%ACmuzoo, 'ACmuzoo', '1/d','max. grazing rate', default=1.893_rk)
       call self%get_parameter(self%ACkphy, 'ACkphy', 'mmol P/m3','half-saturation constant', default=SQRT(self%ACmuzoo/1.0_rk)/rnp)
       call self%get_parameter(self%ACeff, 'ACeff', '1','assimilation efficiency', default=0.75_rk)

@@ -16,7 +16,7 @@ module mops_phytoplankton
       ! VS  introducing id_det_prod_phy (see below)
       type (type_diagnostic_variable_id) :: id_f1, id_chl, id_det_prod_phy
 
-      real(rk) :: TempB, ACmuphy, ACik, ACkpo4, AClambda, AComni, plambda, exutodop
+      real(rk) :: TempB, ro2ut, ACmuphy, ACik, ACkpo4, AClambda, AComni, plambda, exutodop
    contains
       ! Model procedures
       procedure :: initialize
@@ -34,6 +34,7 @@ contains
       real(rk) :: ACkchl
 
       call self%get_parameter(self%TempB, 'TempB', 'degrees Celsius','reference temperature for T-dependent growth', default=15.65_rk) 
+      call self%get_parameter(self%ro2ut, 'ro2ut', 'mol O2/mol P','redfield -O2:P ratio', default=151.13958_rk)
       call self%get_parameter(self%ACmuphy, 'ACmuphy', '1/day','max. growth rate', default=0.6_rk) 
       call self%get_parameter(self%ACik, 'ACik', 'W/m2','light half-saturation constant', default=9.653_rk) 
       call self%get_parameter(self%ACkpo4, 'ACkpo4', 'mmol P/m3','half-saturation constant for PO4 uptake', default=0.4995_rk) 
