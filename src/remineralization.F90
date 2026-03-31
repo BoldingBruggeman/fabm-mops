@@ -44,9 +44,9 @@ contains
       ! Register environmental dependencies
       call self%register_dependency(self%id_bgc_theta, standard_variables%temperature)
 
-      call self%register_diagnostic_variable(self%id_f4, 'f4', 'mmol/m3/d', 'oxic remineralization')
+      call self%register_diagnostic_variable(self%id_f4, 'f4', 'mmol P/m3/d', 'oxic remineralization')
       !call self%register_diagnostic_variable(self%id_f5, 'f5', 'mmol/m3/d', 'river input')
-      call self%register_diagnostic_variable(self%id_f7, 'f7', 'mmol/m3/d', 'denitrification')
+      call self%register_diagnostic_variable(self%id_f7, 'f7', 'mmol P/m3/d', 'denitrification')
 
       self%dt = 86400.0_rk
    end subroutine
