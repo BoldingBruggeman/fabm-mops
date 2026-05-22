@@ -11,7 +11,7 @@ module mops_nitrogen_fixation
 
    type, extends(type_base_model), public :: type_mops_nitrogen_fixation
       type (type_dependency_id) :: id_bgc_theta, id_po4
-      type (type_state_variable_id) :: id_din
+      type (type_state_variable_id) :: id_din, id_alk
       type (type_diagnostic_variable_id) :: id_f6
 
       real(rk) :: tf0, tf1, tf2, tff, nfix
@@ -46,6 +46,7 @@ contains
       call self%register_diagnostic_variable(self%id_f6, 'f6', 'mmol N/m3/d', 'rate')
 
       call self%register_state_dependency(self%id_din, 'din', 'mmol N/m3', 'dissolved inorganic nitrogen')
+      call self%register_state_dependency(self%id_alk, 'alk', 'mmol/m3', 'alkalinity')
       call self%register_dependency(self%id_po4, 'pho', 'mmol P/m3', 'phosphate')
 
       ! Register environmental dependencies
@@ -83,6 +84,7 @@ contains
 
           _SET_DIAGNOSTIC_(self%id_f6, nfixation)
           _ADD_SOURCE_(self%id_din, nfixation)
+          _ADD_SOURCE_(self%id_alk, -nfixation)
 
       _LOOP_END_
    end subroutine do

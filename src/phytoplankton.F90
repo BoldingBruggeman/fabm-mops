@@ -12,10 +12,11 @@ module mops_phytoplankton
    type, extends(type_base_model), public :: type_mops_phytoplankton
       type (type_dependency_id) :: id_bgc_theta, id_bgc_dz, id_ciz, id_att
       type (type_surface_dependency_id) :: id_bgc_tau
-      type (type_state_variable_id) :: id_c, id_po4, id_din, id_oxy, id_det, id_dop, id_dic
-      type (type_diagnostic_variable_id) :: id_f1, id_chl
+      type (type_state_variable_id) :: id_c, id_po4, id_din, id_oxy, id_det, id_dop, id_dic, id_alk
+      ! VS  introducing id_det_prod_phy (see below)
+      type (type_diagnostic_variable_id) :: id_f1, id_chl, id_det_prod_phy
 
-      real(rk) :: TempB, ACmuphy, ACik, ACkpo4, AClambda, AComni, plambda, exutodop
+      real(rk) :: TempB, ro2ut, ACmuphy, ACik, ACkpo4, AClambda, AComni, plambda, exutodop
    contains
       ! Model procedures
       procedure :: initialize
@@ -33,6 +34,7 @@ contains
       real(rk) :: ACkchl
 
       call self%get_parameter(self%TempB, 'TempB', 'degrees Celsius','reference temperature for T-dependent growth', default=15.65_rk) 
+      call self%get_parameter(self%ro2ut, 'ro2ut', 'mol O2/mol P','redfield -O2:P ratio', default=151.13958_rk)
       call self%get_parameter(self%ACmuphy, 'ACmuphy', '1/day','max. growth rate', default=0.6_rk) 
       call self%get_parameter(self%ACik, 'ACik', 'W/m2','light half-saturation constant', default=9.653_rk) 
       call self%get_parameter(self%ACkpo4, 'ACkpo4', 'mmol P/m3','half-saturation constant for PO4 uptake', default=0.4995_rk) 
@@ -48,6 +50,8 @@ contains
 
       call self%register_diagnostic_variable(self%id_f1, 'f1', 'mmol P/m3/d', 'growth rate')
       call self%register_diagnostic_variable(self%id_chl, 'chl', 'mg/m3/d', 'chlorophyll')
+      ! VS  introducing detritus production by phytoplankton as diagnostic variable
+      call self%register_diagnostic_variable(self%id_det_prod_phy, 'det_prod_phy', 'mmol P/m3/d', 'detritus produced by phytoplankton')
 
       call self%register_state_dependency(self%id_dop, 'dop', 'mmol P/m3', 'dissolved organic phosphorus')
       call self%register_state_dependency(self%id_det, 'det', 'mmol P/m3', 'detritus')
@@ -55,6 +59,7 @@ contains
       call self%register_state_dependency(self%id_din, 'din', 'mmol N/m3', 'dissolved inorganic nitrogen')
       call self%register_state_dependency(self%id_po4, 'pho', 'mmol P/m3', 'phosphate')
       call self%register_state_dependency(self%id_dic, 'dic', 'mmol C/m3', 'dissolved inorganic carbon')
+      call self%register_state_dependency(self%id_alk, 'alk', 'mmol/m3', 'alkalinity')
 
       ! Register environmental dependencies
       call self%register_dependency(self%id_ciz, 'ciz', 'W m-2', 'PAR at top of the layer')
@@ -66,6 +71,14 @@ contains
       call self%add_to_aggregate_variable(standard_variables%attenuation_coefficient_of_photosynthetic_radiative_flux, self%id_c, scale_factor=ACkchl)
       call self%add_to_aggregate_variable(standard_variables%total_phosphorus, self%id_c)
       call self%add_to_aggregate_variable(total_chlorophyll, self%id_chl)
+      ! VS also consider total carbon and total nitrogen
+      call self%add_to_aggregate_variable(standard_variables%total_carbon, self%id_c, scale_factor=rcp)
+      call self%add_to_aggregate_variable(standard_variables%total_nitrogen, self%id_c, scale_factor=rnp)
+
+      ! VS  phytoplankton (like zooplankton) detritus production contributes to total detritus production by plankton
+      call self%add_to_aggregate_variable(detritus_production_by_plankton, self%id_det_prod_phy)
+      ! VS an aggregate variable for all biogeochemical DIC
+      call self%add_to_aggregate_variable(total_dic, self%id_dic)
 
       self%dt = 86400.0_rk
    end subroutine
@@ -145,6 +158,9 @@ contains
 ! JB constant chlorophyll:carbon (IK pers comm 2023-03-07)
        _SET_DIAGNOSTIC_(self%id_chl, 50._rk * PHY)
 
+! VS detritus production by phytoplankton
+       _SET_DIAGNOSTIC_(self%id_det_prod_phy, (1.0_rk-self%exutodop)*phyexu)
+
 ! Collect all euphotic zone fluxes in these arrays.
        _ADD_SOURCE_(self%id_c,   phygrow-phyexu-phyloss)
        _ADD_SOURCE_(self%id_po4, -phygrow)
@@ -153,6 +169,7 @@ contains
        _ADD_SOURCE_(self%id_det, (1.0_rk-self%exutodop)*phyexu)
        _ADD_SOURCE_(self%id_din, -phygrow*rnp)
        _ADD_SOURCE_(self%id_dic, -phygrow*rcp)
+       _ADD_SOURCE_(self%id_alk, phygrow*(rnp+1))
        PHY = MAX(PHY - alimit*alimit, 0.0_rk)
        _ADD_SOURCE_(self%id_c,   -self%plambda*PHY)
        _ADD_SOURCE_(self%id_dop,  self%plambda*PHY)

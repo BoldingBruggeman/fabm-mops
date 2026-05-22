@@ -1,9 +1,10 @@
 module mops_shared
-   use fabm_types, only: rk
+   use fabm_types, only: rk, type_interior_standard_variable
    real(rk), parameter :: vsafe = 1.0e-6_rk
    real(rk), parameter :: rcp = 117.0_rk       !redfield ratio C:P
    real(rk), parameter :: rnp = 16.0_rk        !redfield ratio N:P
-   real(rk), parameter :: ro2ut = 151.13958_rk !redfield -O2:P ratio
+!   real(rk), parameter :: ro2ut = 151.13958_rk !redfield -O2:P ratio; value for comparison with PETSC based TMM-MOPS
+   real(rk), parameter :: ro2ut = 169.2545586809128568828164418391679646447301_rk !redfield -O2:P ratio; value as in experiment L4-SO of Kriest et al. (2023)
    real(rk), parameter :: rhno3ut = 0.8_rk*ro2ut - rnp ! -HNO3:P ratio for denitrification
    real(rk), parameter :: bgc_dt = 0.0625_rk   !VS this is correct for 90 minute bgc steps
 !   real(rk), parameter :: bgc_dt = 0.5_rk   !VS this is correct for 12 hour bgc steps
@@ -11,5 +12,12 @@ module mops_shared
    real(rk), parameter :: rho0=1024.5_rk
    real(rk), parameter :: permil=1.0_rk/rho0
    real(rk), parameter :: permeg=1.0e-6_rk
-   real(rk), parameter :: alimit = 1.0d-3   
+   real(rk), parameter :: alimit = 1.0d-3
+   real(rk), parameter :: length_caco3 = 4289.4_rk ! VS length scale for e-folding function for implicit CaCO3 divergences
+   real(rk), parameter :: frac_caco3 = 0.032_rk ! VS calcite-to-organic-carbon ratio [mol CaCO3/mol C; default=0.032]
+   ! VS an aggregate variable for the total detritus production by plankton
+   ! is to be used to calculate implicit CaCO3 divergences fdiv_caco3 and their effect on DIC and Alk
+   type (type_interior_standard_variable), parameter :: detritus_production_by_plankton = type_interior_standard_variable(name='detritus_production_by_plankton',units='mmol P/m3/d',aggregate_variable=.true.) 
+   ! VS an aggregate variable for all DIC 
+   type (type_interior_standard_variable), parameter :: total_dic = type_interior_standard_variable(name='total_dic',units='mmol C/m3/d',aggregate_variable=.true.)
 end module

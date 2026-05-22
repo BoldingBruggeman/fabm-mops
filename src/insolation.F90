@@ -11,6 +11,7 @@ module mops_insolation
    type, extends(type_base_model), public :: type_mops_insolation
       type (type_horizontal_dependency_id)       :: id_YC
       type (type_global_dependency_id)           :: id_Time
+!      type (type_global_dependency_id)           :: id_daysperyear
       type (type_surface_diagnostic_variable_id) :: id_sfac, id_stau, id_frac ! VS id_frac for debuggung
    contains
       ! Model procedures
@@ -32,6 +33,8 @@ contains
       ! Register environmental dependencies
       call self%register_dependency(self%id_YC, standard_variables%latitude)
       call self%register_dependency(self%id_Time, standard_variables%number_of_days_since_start_of_the_year)
+!      call self%register_dependency(self%id_daysperyear, standard_variables%days_per_year)
+      
    end subroutine
 
    ! find shortwave radiation as function of date and latitude
@@ -65,6 +68,7 @@ contains
 !
 ! find day (****NOTE for year starting in winter*****)
         _GET_GLOBAL_(self%id_Time, Time)
+!        _GET_GLOBAL_(self%id_daysperyear, daysperyear)
         dayfrac=mod(Time,daysperyear) &
                          /(daysperyear)          !fraction of year
         yday = 2.0_rk*3.1416_rk*dayfrac                         !convert to radians

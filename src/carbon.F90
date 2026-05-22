@@ -10,13 +10,12 @@ module mops_carbon
    private
 
    type, extends(type_base_model), public :: type_mops_carbon
-      type (type_state_variable_id) :: id_dic
+      type (type_state_variable_id) :: id_dic, id_alk
       type (type_dependency_id) :: id_pho, id_sil, id_bgc_salt, id_bgc_theta
       type (type_surface_dependency_id) :: id_bgc_wind, id_bgc_seaice, id_bgc_atmosp, id_pco2atm, id_surf_ph_in
       type (type_surface_diagnostic_variable_id) :: id_surf_ph, id_gasex
-
-      ! Parameters
-      real(rk) :: ocmip_alkfac
+!      ! Parameters
+!      real(rk) :: ocmip_alkfac ! VS test
    contains
       ! Model procedures
       procedure :: initialize
@@ -30,8 +29,8 @@ contains
       integer,                  intent(in)            :: configunit
 
       call self%register_state_variable(self%id_dic, 'c', 'mmol C/m3', 'dissolved inorganic carbon')
-
-      call self%get_parameter(self%ocmip_alkfac, 'ocmip_alkfac', 'meq/m3/PSU', 'alkalinity relative to salinity', default=2310.0_rk*1.0245_rk/34.88_rk)
+!      call self%get_parameter(self%ocmip_alkfac, 'ocmip_alkfac', 'meq/m3/PSU', 'alkalinity relative to salinity', default=2310.0_rk*1.0245_rk/34.88_rk) ! VS test
+      call self%register_state_dependency(self%id_alk, 'alk', 'mmol/m3', 'alkalinity')
 
       call self%register_diagnostic_variable(self%id_surf_ph, 'surf_ph', '-', 'surface pH', missing_value=8.0_rk)
       call self%register_diagnostic_variable(self%id_gasex, 'gasex', 'mmol C/m2/d', 'air-sea exchange of CO2')
@@ -46,6 +45,10 @@ contains
       call self%register_dependency(self%id_bgc_atmosp, standard_variables%surface_air_pressure)
       call self%register_dependency(self%id_pco2atm, standard_variables%mole_fraction_of_carbon_dioxide_in_air)
       call self%register_dependency(self%id_surf_ph_in, 'surf_ph', '-', 'previous surface pH')
+      ! VS an aggregate variable for all biogeochemical DIC
+      call self%add_to_aggregate_variable(total_dic, self%id_dic)
+      ! VS consider total carbon
+      call self%add_to_aggregate_variable(standard_variables%total_carbon, self%id_dic)
 
       self%dt = 86400.0_rk
    end subroutine
@@ -54,7 +57,7 @@ contains
       class (type_mops_carbon), intent(in) :: self
       _DECLARE_ARGUMENTS_DO_SURFACE_
 
-      real(rk) :: surf_dic, surf_pho, surf_sil, bgc_salt, bgc_theta, surf_alk, co2gasex
+      real(rk) :: surf_dic, surf_pho, surf_sil, bgc_salt, bgc_theta, surf_alk, co2gasex!, surf_alk_ocmip
       real(rk) :: bgc_wind, bgc_seaice, bgc_atmosp, pco2atm, vgas660, surf_ph
 
       _SURFACE_LOOP_BEGIN_
@@ -63,6 +66,7 @@ contains
 
    ! AIR-SEA GAS EXCHANGE OF CO2
          _GET_(self%id_dic, surf_dic)
+         _GET_(self%id_alk, surf_alk)
          _GET_(self%id_pho, surf_pho)
          _GET_(self%id_sil, surf_sil)  ! normally constant Surface silicate from the OCMIP protocol
          _GET_(self%id_bgc_salt, bgc_salt)
@@ -72,13 +76,12 @@ contains
          _GET_SURFACE_(self%id_bgc_atmosp, bgc_atmosp)
          _GET_SURFACE_(self%id_pco2atm, pco2atm)
          _GET_SURFACE_(self%id_surf_ph_in, surf_ph)
+         !surf_alk_ocmip = self%ocmip_alkfac*bgc_salt ! VS test
 
 ! convert from Pa to atm (requires to convert to Pa in python runscript)
          bgc_atmosp = bgc_atmosp / 101325.0_rk
 
-   ! Surface total alkalinity from the OCMIP protocol
-         surf_alk = self%ocmip_alkfac*bgc_salt
-
+! VS test: using surf_alk_ocmip instead of surf_alk for co2gasex calculation
          vgas660=(0.337_rk*bgc_wind**2)*0.24_rk*(1.0_rk-bgc_seaice)
          CALL CO2_SURFFORCING(vgas660,bgc_atmosp, &
              surf_dic,surf_pho,surf_alk,surf_sil,bgc_theta,bgc_salt,pco2atm, &
@@ -89,7 +92,6 @@ contains
          _SET_SURFACE_DIAGNOSTIC_(self%id_surf_ph, surf_ph)
       _SURFACE_LOOP_END_
    end subroutine do_surface
-
 
    elemental subroutine car_coeffs(t,s,bt,st,ft,ff,ak0,ak1,ak2,ak1p,ak2p,ak3p,aksi,akw,aks,akf,akb)
       real(rk), intent(in) :: t,s
@@ -150,23 +152,23 @@ contains
 ! Millero p.670 (1995)
       ak1p = exp(-4576.752_rk*invtk + 115.540_rk -  &
              18.453_rk*dlogtk +  &
-   		    (-106.736_rk*invtk + 0.69171_rk)*sqrts + &
-   		    (-0.65643_rk*invtk - 0.01844_rk)*s)
+            (-106.736_rk*invtk + 0.69171_rk)*sqrts + &
+            (-0.65643_rk*invtk - 0.01844_rk)*s)
 
 
 ! k2p = [H][HPO4]/[H2PO4] on hSWS
 ! Millero p.670 (1995)
       ak2p = exp(-8814.715_rk*invtk + 172.1033_rk -  &
              27.927_rk*dlogtk + &
-   		    (-160.340_rk*invtk + 1.3566_rk)*sqrts + &
-   		    (0.37335_rk*invtk - 0.05778_rk)*s)
+            (-160.340_rk*invtk + 1.3566_rk)*sqrts + &
+            (0.37335_rk*invtk - 0.05778_rk)*s)
 
 
 ! k3p = [H][PO4]/[HPO4] on hSWS
 ! Millero p.670 (1995)
-	   ak3p = exp(-3070.75_rk*invtk - 18.126_rk +  &
-   		    (17.27039_rk*invtk + 2.81197_rk) * &
-   		    sqrts + (-44.99486_rk*invtk - 0.09984_rk) * s)
+       ak3p = exp(-3070.75_rk*invtk - 18.126_rk +  &
+            (17.27039_rk*invtk + 2.81197_rk) * &
+            sqrts + (-44.99486_rk*invtk - 0.09984_rk) * s)
 
 
 ! ksi = [H][SiO(OH)3]/[Si(OH)4] on hSWS
@@ -174,18 +176,18 @@ contains
 ! change to (mol/ kg soln)
       aksi = exp(-8904.2_rk*invtk + 117.400_rk -  &
              19.334_rk*dlogtk + &
-   		    (-458.79_rk*invtk + 3.5913_rk) * sqrtis + &
-   		    (188.74_rk*invtk - 1.5998_rk) * is + &
-   		    (-12.1652_rk*invtk + 0.07871_rk) * is2 + &
-   		    log(1._rk-0.001005_rk*s))
+            (-458.79_rk*invtk + 3.5913_rk) * sqrtis + &
+            (188.74_rk*invtk - 1.5998_rk) * is + &
+            (-12.1652_rk*invtk + 0.07871_rk) * is2 + &
+            log(1._rk-0.001005_rk*s))
 
 
 ! kw = [H][OH] on hSWS
 ! Millero p.670 (1995) using composite data
       akw = exp(-13847.26_rk*invtk + 148.9802_rk -  &
              23.6521_rk*dlogtk + &
-   		    (118.67_rk*invtk - 5.977_rk + 1.0495_rk * dlogtk) * &
-   		    sqrts - 0.01615_rk * s)
+            (118.67_rk*invtk - 5.977_rk + 1.0495_rk * dlogtk) * &
+            sqrts - 0.01615_rk * s)
 
 
 ! ks = [H][SO4]/[HSO4] on free H scale
@@ -193,27 +195,27 @@ contains
 ! change to (mol/ kg soln)
       aks=exp(-4276.1_rk*invtk + 141.328_rk -  &
              23.093_rk*dlogtk + &
-   		    (-13856._rk*invtk + 324.57_rk - 47.986_rk*dlogtk)*sqrtis + &
-      		(35474._rk*invtk - 771.54_rk + 114.723_rk*dlogtk)*is - &
-     		2698._rk*invtk*is**1.5_rk + 1776._rk*invtk*is2 + &
-   		    log(1._rk - 0.001005_rk*s))
+            (-13856._rk*invtk + 324.57_rk - 47.986_rk*dlogtk)*sqrtis + &
+            (35474._rk*invtk - 771.54_rk + 114.723_rk*dlogtk)*is - &
+            2698._rk*invtk*is**1.5_rk + 1776._rk*invtk*is2 + &
+            log(1._rk - 0.001005_rk*s))
 
 
 ! kf = [H][F]/[HF] on free H scale
 ! Dickson and Riley (1979)
 ! change to (mol/ kg soln)
       akf=exp(1590.2_rk*invtk - 12.641_rk + 1.525_rk*sqrtis + &
-   		    log(1._rk - 0.001005_rk*s)) 
+            log(1._rk - 0.001005_rk*s)) 
 
 
 ! kb = [H][BO2]/[HBO2] on hSWS
 ! Dickson p.673 (1990)
 ! change from htotal to hSWS
       akb=exp( (-8966.90_rk - 2890.53_rk*sqrts - 77.942_rk*s + &
-   		    1.728_rk*s15 - 0.0996_rk*s2)*invtk + &
-     		(148.0248_rk + 137.1942_rk*sqrts + 1.62142_rk*s) + &
-     		(-24.4344_rk - 25.085_rk*sqrts - 0.2474_rk*s) * &
-     		dlogtk + 0.053105_rk*sqrts*tk + &
+            1.728_rk*s15 - 0.0996_rk*s2)*invtk + &
+            (148.0248_rk + 137.1942_rk*sqrts + 1.62142_rk*s) + &
+            (-24.4344_rk - 25.085_rk*sqrts - 0.2474_rk*s) * &
+            dlogtk + 0.053105_rk*sqrts*tk + &
              log((1._rk+(st/aks)+(ft/akf))  &
              /(1._rk+(st/aks))) )
    end subroutine
@@ -237,8 +239,8 @@ contains
       real(rk) :: sdic,spho,ssil,salk   
 
       SchmidtNoCO2 = scar1 - scar2*ttemp + scar3*ttemp*ttemp &
-     	 - scar4*ttemp*ttemp*ttemp
-	
+         - scar4*ttemp*ttemp*ttemp
+    
       KWexch = vgas660/sqrt(SchmidtNoCO2/660.0_rk)
 
 ! calculate co2star = pCO2 in the surface water 

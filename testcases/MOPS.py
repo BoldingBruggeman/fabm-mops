@@ -13,7 +13,7 @@ calendar = "360_day"  # any valid calendar recognized by cftime, see https://cfc
 
 script_dir = os.path.dirname(__file__)
 fabm_yaml = os.path.join(
-    script_dir, "fabm.yaml"
+    script_dir, "fabm_mops_with_runoff.yaml"
 )
 
 domain = fabmos.transport.tmm.create_domain(tm_config_dir)
@@ -25,8 +25,9 @@ sim.fabm.get_dependency("mole_fraction_of_carbon_dioxide_in_air").set(280.0)
 sim.fabm.get_dependency("surface_air_pressure").set(101325.0)
 
 # Load rivers from https://doi.org/10.1029/96JD00932
+# but restricted to the 75 largest rivers
 rivers = pd.read_fwf(
-    os.path.join(script_dir, "rivrstat.txt"),
+    os.path.join(script_dir, "rivrstat75.txt"),
     skiprows=7,
     usecols=(1, 2, 3, 4, 6),
     names=("name", "country", "lat", "lon", "flow"),
@@ -52,7 +53,7 @@ out.request("runoff_source", "temp", "salt", "wind", "ice", "surface_air_pressur
 
 start = cftime.datetime(2000, 1, 1, calendar=calendar)
 stop = cftime.datetime(2001, 1, 1, calendar=calendar)
-sim.start(start, timestep = 12 * 3600, transport_timestep = 12 * 3600 )
+sim.start(start, timestep = 1.5 * 3600, transport_timestep = 12 * 3600 )
 while sim.time < stop:
     sim.advance()
 sim.finish()

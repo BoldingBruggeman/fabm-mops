@@ -11,10 +11,10 @@ module mops_remineralization
 
    type, extends(type_base_model), public :: type_mops_remineralization
       type (type_dependency_id) :: id_bgc_theta
-      type (type_state_variable_id) :: id_dop, id_det, id_oxy, id_din, id_po4, id_dic
+      type (type_state_variable_id) :: id_dop, id_det, id_oxy, id_din, id_po4, id_dic, id_alk
       type (type_diagnostic_variable_id) :: id_f4, id_f5, id_f7
 
-      real(rk) :: dlambda, detlambda, subox, subdin, ACkbaco2, ACkbacdin
+      real(rk) :: ro2ut, dlambda, detlambda, subox, subdin, ACkbaco2, ACkbacdin
    contains
       ! Model procedures
       procedure :: initialize
@@ -27,6 +27,7 @@ contains
       class (type_mops_remineralization), intent(inout), target :: self
       integer,                            intent(in)            :: configunit
 
+      call self%get_parameter(self%ro2ut, 'ro2ut', 'mol O2/mol P','redfield -O2:P ratio', default=151.13958_rk)
       call self%get_parameter(self%dlambda, 'dlambda', '1/d','DOP remineralization rate', default=0.0005133333049196715389730860613828195004870736_rk)
       call self%get_parameter(self%detlambda, 'detlambda', '1/d','detritus remineralization rate', default=0.05_rk)
       call self%get_parameter(self%subox, 'subox', 'mmol/m3','minimum oxygen for oxic degradation', default=1.0_rk)
@@ -40,6 +41,7 @@ contains
       call self%register_state_dependency(self%id_din, 'din', 'mmol N/m3', 'dissolved inorganic nitrogen')
       call self%register_state_dependency(self%id_po4, 'pho', 'mmol P/m3', 'phosphate')
       call self%register_state_dependency(self%id_dic, 'dic', 'mmol C/m3', 'dissolved inorganic carbon')
+      call self%register_state_dependency(self%id_alk, 'alk', 'mmol/m3', 'alkalinity')
 
       ! Register environmental dependencies
       call self%register_dependency(self%id_bgc_theta, standard_variables%temperature)
@@ -47,6 +49,9 @@ contains
       call self%register_diagnostic_variable(self%id_f4, 'f4', 'mmol P/m3/d', 'oxic remineralization')
       !call self%register_diagnostic_variable(self%id_f5, 'f5', 'mmol/m3/d', 'river input')
       call self%register_diagnostic_variable(self%id_f7, 'f7', 'mmol P/m3/d', 'denitrification')
+
+      ! VS an aggregate variable for all biogeochemical DIC
+      call self%add_to_aggregate_variable(total_dic, self%id_dic)
 
       self%dt = 86400.0_rk
    end subroutine
@@ -135,6 +140,8 @@ contains
       _ADD_SOURCE_(self%id_det, -remindet-denitdet)
       _ADD_SOURCE_(self%id_din, +(remindop+remindet)*rnp-(denitdop+denitdet)*rhno3ut)
       _ADD_SOURCE_(self%id_dic, topo4*rcp)
+      _ADD_SOURCE_(self%id_alk, -(remindop+remindet)*(rnp+1)+(denitdop+denitdet)*(rhno3ut-1))
+
       _SET_DIAGNOSTIC_(self%id_f4, remindop+remindet)
       _SET_DIAGNOSTIC_(self%id_f7, denitdop+denitdet)
 

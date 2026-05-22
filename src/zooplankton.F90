@@ -10,12 +10,14 @@ module mops_zooplankton
    private
 
    type, extends(type_base_model), public :: type_mops_zooplankton
-      type (type_state_variable_id) :: id_c, id_phy, id_po4, id_din, id_oxy, id_det, id_dop, id_dic
-      type (type_diagnostic_variable_id) :: id_graz
+      type (type_state_variable_id) :: id_c, id_phy, id_po4, id_din, id_oxy, id_det, id_dop, id_dic, id_alk
+      type (type_diagnostic_variable_id) :: id_f2
+      ! VS: introducing id_det_prod_zoo (see below)
+      type (type_diagnostic_variable_id) :: id_det_prod_zoo
       ! VS: diagnostic to complete all carbon_c flux diagnostics
       type (type_diagnostic_variable_id) :: id_zooexu
 
-      real(rk) :: ACmuzoo, ACkphy, AClambdaz, AComniz, ACeff, graztodop, zlambda
+      real(rk) :: ro2ut, ACmuzoo, ACkphy, AClambdaz, AComniz, ACeff, graztodop, zlambda
    contains
       ! Model procedures
       procedure :: initialize
@@ -28,6 +30,7 @@ contains
       class (type_mops_zooplankton), intent(inout), target :: self
       integer,                       intent(in)            :: configunit
 
+      call self%get_parameter(self%ro2ut, 'ro2ut', 'mol O2/mol P','redfield -O2:P ratio', default=151.13958_rk)
       call self%get_parameter(self%ACmuzoo, 'ACmuzoo', '1/d','max. grazing rate', default=1.893_rk)
       call self%get_parameter(self%ACkphy, 'ACkphy', 'mmol P/m3','half-saturation constant', default=SQRT(self%ACmuzoo/1.0_rk)/rnp)
       call self%get_parameter(self%ACeff, 'ACeff', '1','assimilation efficiency', default=0.75_rk)
@@ -36,13 +39,13 @@ contains
       call self%get_parameter(self%AComniz, 'AComniz', 'm3/(mmol P * day)','density dependent loss rate', default=4.548_rk)
       call self%get_parameter(self%zlambda, 'zlambda', '1/d','mortality', default=0.01_rk)
 
-! VS nur kurz without minimum value to avoid clipping in TMM implementation
-! (see Jorns mail on October 16, 2024)
-      call self%register_state_variable(self%id_c, 'c', 'mmol P/m3', 'concentration') !, minimum=0.0_rk)
-
-      call self%register_diagnostic_variable(self%id_graz, 'graz', 'mmol P/m3/d', 'grazing')
-      ! VS: zooexu to complete all carbon_c flux diagnostics
+! VS remove minimum value parameter to avoid clipping in TMM implementation acc. to Jorns, October 16, 2024
+      call self%register_state_variable(self%id_c, 'c', 'mmol P/m3', 'concentration', minimum=0.0_rk)
+      call self%register_diagnostic_variable(self%id_f2, 'f2', 'mmol P/m3/d', 'grazing')
+      ! VS: diagnostic to complete all carbon_c flux diagnostics
       call self%register_diagnostic_variable(self%id_zooexu, 'zooexu', 'mmol P/m3/d', 'exudation')
+      ! VS introducing detritus production by zooplankton as diagnostic variable
+      call self%register_diagnostic_variable(self%id_det_prod_zoo, 'det_prod_zoo', 'mmol P/m3/d', 'detritus produced by zooplankton')
 
       call self%register_state_dependency(self%id_phy, 'phy', 'mmol P/m3', 'phytoplankton')
       call self%register_state_dependency(self%id_dop, 'dop', 'mmol P/m3', 'dissolved organic phosphorus')
@@ -51,9 +54,17 @@ contains
       call self%register_state_dependency(self%id_din, 'din', 'mmol N/m3', 'dissolved inorganic nitrogen')
       call self%register_state_dependency(self%id_po4, 'pho', 'mmol P/m3', 'phosphate')
       call self%register_state_dependency(self%id_dic, 'dic', 'mmol C/m3', 'dissolved inorganic carbon')
+      call self%register_state_dependency(self%id_alk, 'alk', 'mmol/m3', 'alkalinity')
 
       ! Register environmental dependencies
       call self%add_to_aggregate_variable(standard_variables%total_phosphorus, self%id_c)
+      ! VS also consider total carbon and total nitrogen
+      call self%add_to_aggregate_variable(standard_variables%total_carbon, self%id_c, scale_factor=rcp)
+      call self%add_to_aggregate_variable(standard_variables%total_nitrogen, self%id_c, scale_factor=rnp)
+      ! VS zooplankton (like phytoplankton) detritus production contributes to total detritus production by plankton
+      call self%add_to_aggregate_variable(detritus_production_by_plankton, self%id_det_prod_zoo)
+      ! VS an aggregate variable for all biogeochemical DIC
+      call self%add_to_aggregate_variable(total_dic, self%id_dic)
 
       self%dt = 86400.0_rk
    end subroutine
@@ -98,8 +109,10 @@ contains
 
        endif !ZOO
 
-       _SET_DIAGNOSTIC_(self%id_graz, graz)
+       _SET_DIAGNOSTIC_(self%id_f2, graz)
        _SET_DIAGNOSTIC_(self%id_zooexu, zooexu)
+! VS detritus production by zooplankton
+       _SET_DIAGNOSTIC_(self%id_det_prod_zoo, (1.0_rk-self%graztodop)*(1.0_rk-self%ACeff)*graz + (1.0_rk-self%graztodop)*zooloss)
 
 ! Collect all euphotic zone fluxes in these arrays.
         _ADD_SOURCE_(self%id_c, self%ACeff*graz-zooexu-zooloss)
@@ -111,6 +124,7 @@ contains
 
         _ADD_SOURCE_(self%id_din, zooexu*rnp)
         _ADD_SOURCE_(self%id_dic, zooexu*rcp)
+        _ADD_SOURCE_(self%id_alk, -zooexu*(rnp+1))
 
          ZOO = MAX(ZOO - alimit*alimit, 0.0_rk)
          _ADD_SOURCE_(self%id_c, -self%zlambda*ZOO)
